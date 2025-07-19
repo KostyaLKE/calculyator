@@ -46,50 +46,88 @@
     }
     input.invalid { border-color: red; }
     button { 
-      padding: 10px; 
-      margin: 8px 0; 
+      padding: 8px; 
+      margin: 12px 4px; 
       border: none; 
       color: #fff; 
       font-size: 14px;
       border-radius: 6px; 
       cursor: pointer; 
       transition: background 0.3s, transform 0.1s; 
-      width: 100%; 
       display: flex; 
       align-items: center; 
       justify-content: center; 
       gap: 8px;
     }
     button:active { transform: scale(0.95); }
-    #calcBtn { background: #4a90e2; } #calcBtn:hover { background: #357ab8; }
-    #openTiny { background: #34a853; } #openTiny:hover { background: #2c8e47; }
-    #timerBtn { background: #f39c12; } #timerBtn:hover { background: #d77b0c; }
-    #resetTimerBtn { background: #e74c3c; } #resetTimerBtn:hover { background: #c0392b; }
-    #toggleTheme { background: #8e44ad; } #toggleTheme:hover { background: #732d91; }
-    #clearHistory { background: #7f8c8d; } #clearHistory:hover { background: #6c7a89; }
+    #calcBtn { 
+      background: #4a90e2; 
+      width: 100%; 
+    } 
+    #calcBtn:hover { background: #357ab8; }
+    #openTiny, #toggleTheme, #clearHistory { 
+      background: #7f8c8d; 
+      width: calc(33.33% - 8px); 
+      height: 36px; 
+      padding: 6px; 
+    }
+    #openTiny:hover, #toggleTheme:hover, #clearHistory:hover { 
+      background: #6c7a89; 
+    }
+    #timerBtn, #resetTimerBtn { 
+      background: #f39c12; 
+      width: calc(50% - 8px); 
+    }
+    #timerBtn:hover, #resetTimerBtn:hover { 
+      background: #d77b0c; 
+    }
+    #resetTimerBtn { background: #e74c3c; } 
+    #resetTimerBtn:hover { background: #c0392b; }
+    .button-group { 
+      display: flex; 
+      justify-content: space-between; 
+      flex-wrap: nowrap; 
+      align-items: center;
+    }
+    .timer-button-group { 
+      display: flex; 
+      justify-content: space-between; 
+      flex-wrap: nowrap; 
+      align-items: center;
+      margin-top: 10px;
+    }
     .result { 
       margin-top: 10px; 
       font-size: 16px; 
       min-height: 20px; 
       color: #222; 
+      background: #f0f4f8;
+      border: 1px solid #ccd0d5;
+      border-radius: 6px;
+      padding: 8px;
     }
-    .calculator.dark .result { color: #fff; }
+    .calculator.dark .result { 
+      color: #fff; 
+      background: #555; 
+      border-color: #666; 
+    }
     .history { 
       text-align: left; 
       max-height: 100px; 
       overflow-y: auto; 
-      margin: 10px 0; 
-      padding: 5px;
+      margin: 8px 0; 
+      padding: 4px;
       border: 1px solid #ddd; 
       border-radius: 6px; 
       background: #fafafa; 
-      font-size: 14px; 
+      font-size: 12px; 
+      opacity: 0.85;
     }
     .calculator.dark .history { 
       background: #555; 
       border-color: #666; 
     }
-    .history-item { margin-bottom: 4px; }
+    .history-item { margin-bottom: 3px; }
     .timer-block { 
       display: flex; 
       justify-content: space-between; 
@@ -132,6 +170,12 @@
     @media (max-width: 400px) {
       .calculator { width: 90%; padding: 15px; }
       input, select, button { font-size: 12px; }
+      #openTiny, #toggleTheme, #clearHistory { 
+        width: calc(33.33% - 6px); 
+        height: 32px; 
+        padding: 5px; 
+      }
+      #timerBtn, #resetTimerBtn { width: calc(50% - 6px); }
     }
   </style>
 </head>
@@ -149,20 +193,25 @@
   <button id="calcBtn"><i class="fas fa-calculator"></i> Рассчитать</button>
   <div class="result" id="result"></div>
   <div class="history" id="history"></div>
-  <button id="clearHistory"><i class="fas fa-trash"></i> Очистить историю</button>
-  <button id="openTiny"><i class="fas fa-window-restore"></i> Открыть компактное окно</button>
-  <button id="toggleTheme"><i class="fas fa-moon"></i> Переключить тему</button>
-  
+  <div class="button-group">
+    <button id="clearHistory" title="Очистить историю"><i class="fas fa-trash"></i></button>
+    <button id="openTiny" title="Открыть компактное окно"><i class="fas fa-window-restore"></i></button>
+    <button id="toggleTheme" title="Переключить тему"><i class="fas fa-moon"></i></button>
+  </div>
   <div class="timer-block">
     <input type="number" id="minInput" placeholder="Мин" title="Введите минуты" />
     <input type="number" id="secInput" placeholder="Сек" title="Введите секунды" />
   </div>
-  <button id="timerBtn"><i class="fas fa-clock"></i> <span>Start Timer</span></button>
-  <button id="resetTimerBtn"><i class="fas fa-undo"></i> Reset Timer</button>
+  <div class="timer-button-group">
+    <button id="timerBtn"><i class="fas fa-clock"></i> <span>Start Timer</span></button>
+    <button id="resetTimerBtn"><i class="fas fa-undo"></i> <span>Reset Timer</span></button>
+  </div>
   <div class="timer-display" id="timerDisplay">00:00</div>
   <div class="progress-bar" id="progressBar"></div>
-  <audio id="beep" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg" preload="auto"></audio>
-  <audio id="calcBeep" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg" preload="auto"></audio>
+  <audio id="beep" preload="auto">
+    <source src="https://www.soundjay.com/buttons/beep-01a.mp3" type="audio/mpeg">
+    <source src="https://www.soundjay.com/buttons/beep-01a.ogg" type="audio/ogg">
+  </audio>
 </div>
 
 <script>
@@ -175,7 +224,7 @@
         hist = document.getElementById('history'),
         clearBtn = document.getElementById('clearHistory'),
         openTiny = document.getElementById('openTiny'),
-        calcBeep = document.getElementById('calcBeep');
+        toggleTheme = document.getElementById('toggleTheme');
 
   let historyArr = JSON.parse(localStorage.getItem('calcHistory')) || [];
 
@@ -244,7 +293,6 @@
     }
     res.textContent = text;
     addHistory(text);
-    calcBeep.play();
   }
 
   btn.addEventListener('click', calculate);
@@ -253,7 +301,7 @@
   );
   clearBtn.addEventListener('click', () => {
     historyArr = [];
-    localStorage.removeItem('calcHistory');
+    localStorage.setItem('calcHistory', JSON.stringify(historyArr));
     hist.innerHTML = '';
   });
   modeEl.addEventListener('change', updatePlaceholders);
@@ -287,24 +335,26 @@
   if (window.name === 'tinyCalc') openTiny.style.display = 'none';
 
   openTiny.addEventListener('click', () => {
-    window.open(window.location.href, 'tinyCalc', 'width=300,height=500,left=100,top=100');
+    window.open(window.location.href, 'tinyCalc', 'width=350,height=600,left=100,top=100');
     openTiny.style.display = 'none';
   });
 
   // ————— Темная тема —————
-  document.getElementById('toggleTheme').addEventListener('click', () => {
+  toggleTheme.addEventListener('click', () => {
     document.body.classList.toggle('dark');
     document.querySelector('.calculator').classList.toggle('dark');
     document.querySelector('.history').classList.toggle('dark');
   });
 
   // ————— Таймер —————
-  let timerInterval, total, initialTotal, isPaused = false;
+  let timerInterval = null, total = 0, initialTotal = 0, isPaused = false;
   const display = document.getElementById('timerDisplay'),
         beep = document.getElementById('beep'),
         timerBtn = document.getElementById('timerBtn'),
         resetTimerBtn = document.getElementById('resetTimerBtn'),
-        progressBar = document.getElementById('progressBar');
+        progressBar = document.getElementById('progressBar'),
+        minInput = document.getElementById('minInput'),
+        secInput = document.getElementById('secInput');
 
   function updateTimer() {
     total--;
@@ -312,10 +362,15 @@
       clearInterval(timerInterval);
       display.textContent = '00:00';
       display.classList.add('ending');
-      beep.play();
+      try {
+        beep.play();
+      } catch (e) {
+        console.warn('Не удалось воспроизвести звук таймера:', e);
+      }
       timerBtn.querySelector('span').textContent = 'Start Timer';
       timerInterval = null;
       isPaused = false;
+      progressBar.style.setProperty('--progress', '0%');
     } else {
       const m = Math.floor(total / 60), s = total % 60;
       display.textContent = `${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
@@ -325,20 +380,26 @@
   }
 
   timerBtn.addEventListener('click', () => {
-    if (timerInterval) {
-      if (isPaused) {
-        timerInterval = setInterval(updateTimer, 1000);
-        timerBtn.querySelector('span').textContent = 'Pause Timer';
-        isPaused = false;
-      } else {
-        clearInterval(timerInterval);
-        timerBtn.querySelector('span').textContent = 'Resume Timer';
-        isPaused = true;
-      }
+    if (timerInterval && !isPaused) {
+      clearInterval(timerInterval);
+      timerBtn.querySelector('span').textContent = 'Resume Timer';
+      isPaused = true;
       return;
     }
-    const mins = parseInt(document.getElementById('minInput').value) || 0;
-    const secs = parseInt(document.getElementById('secInput').value) || 0;
+    if (isPaused) {
+      const mins = parseInt(minInput.value) || 0;
+      const secs = parseInt(secInput.value) || 0;
+      total = mins * 60 + secs;
+      if (total <= 0) return alert('Установите время.');
+      initialTotal = total;
+      timerInterval = setInterval(updateTimer, 1000);
+      timerBtn.querySelector('span').textContent = 'Pause Timer';
+      isPaused = false;
+      progressBar.style.setProperty('--progress', `${(total / initialTotal) * 100}%`);
+      return;
+    }
+    const mins = parseInt(minInput.value) || 0;
+    const secs = parseInt(secInput.value) || 0;
     total = mins * 60 + secs;
     if (total <= 0) return alert('Установите время.');
     initialTotal = total;
@@ -350,13 +411,15 @@
 
   resetTimerBtn.addEventListener('click', () => {
     clearInterval(timerInterval);
+    timerInterval = null;
     total = 0;
+    initialTotal = 0;
+    isPaused = false;
     display.textContent = '00:00';
     display.classList.remove('ending');
     timerBtn.querySelector('span').textContent = 'Start Timer';
-    isPaused = false;
-    document.getElementById('minInput').value = '';
-    document.getElementById('secInput').value = '';
+    minInput.value = '';
+    secInput.value = '';
     progressBar.style.setProperty('--progress', '0%');
   });
 </script>
