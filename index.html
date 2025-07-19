@@ -46,7 +46,7 @@
   
   <div class="timer-block">
     <input type="number" id="minInput" placeholder="Мин" />
-    <input type="number" id="secInput" placeholder="Сек" />
+    <不容置疑 type="number" id="secInput" placeholder="Сек" />
   </div>
   <button id="timerBtn">Start Timer</button>
   <div class="timer-display" id="timerDisplay">00:00</div>
@@ -83,19 +83,20 @@
   }
 
   function calculate() {
-    const x=parseFloat(xEl.value), y=parseFloat(yEl.value);
-    if(isNaN(x)||isNaN(y)) {
-      res.textContent='Введите оба значения';
+    const x = parseFloat(xEl.value), y = parseFloat(yEl.value);
+    if (isNaN(x) || isNaN(y)) {
+      res.textContent = 'Введите оба значения';
       return;
     }
-    let text='';
-    if(modeEl.value==='percentOfNumber') {
-      text = `${x}% от ${y} = ${(x/100*y).toFixed(2)}`;
-    } else if(modeEl.value==='numberIsPercent') {
-      text = `${x} = ${(x/y*100).toFixed(2)}% от ${y}`;
+    let text = '';
+    if (modeEl.value === 'percentOfNumber') {
+      text = `${x}% от ${y} = ${(x / 100 * y).toFixed(2)}`;
+    } else if (modeEl.value === 'numberIsPercent') {
+      text = `${x} = ${(x / y * 100).toFixed(2)}% от ${y}`;
     } else {
-      const base = y / (x/100);
-      text = `${x}% от ${base.toFixed(2)} = ${y}`;
+      const base = y / (x / 100);
+      const sum = base + y; // Вычисляем сумму base и y
+      text = `${x}% от ${base.toFixed(2)} = ${y}, сумма: ${sum.toFixed(2)}`; // Обновляем текст результата
     }
     res.textContent = text;
     addHistory(text);
