@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Процентный калькулятор</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      display: flex;
+      height: 100vh;
+      justify-content: center;
+      align-items: center;
+      background: #eef2f7;
+      font-family: 'Segoe UI', Tahoma, sans-serif;
+    }
+    .calculator {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+      padding: 30px;
+      width: 320px;
+      text-align: center;
+    }
+    .calculator h2 {
+      margin-bottom: 20px;
+      color: #333;
+      font-weight: 500;
+    }
+    .calculator input, .calculator select {
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 15px;
+      border: 1px solid #ccd0d5;
+      border-radius: 6px;
+      font-size: 16px;
+    }
+    .calculator select {
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg fill='%23666' height='24' viewBox='0 0 24 24' width='24'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+    }
+    .calculator button {
+      width: 100%;
+      padding: 12px;
+      margin-top: 5px;
+      border: none;
+      background: #4a90e2;
+      color: white;
+      font-size: 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    .calculator button:hover {
+      background: #357ab8;
+    }
+    .calculator .result {
+      margin-top: 20px;
+      font-size: 18px;
+      color: #222;
+      min-height: 24px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="calculator">
+  <h2>Процентный калькулятор</h2>
+  <select id="mode">
+    <option value="percentOfNumber">Сколько будет X% от числа Y?</option>
+    <option value="numberIsPercent">X — это сколько % от Y?</option>
+    <option value="numberFromPercent" selected>X% от какого числа равно Y?</option>
+  </select>
+
+  <input type="number" id="xInput" placeholder="Процент (X)" />
+  <input type="number" id="yInput" placeholder="Результат (Y)" />
+
+  <button id="calcBtn">Рассчитать</button>
+  <div class="result" id="result"></div>
+</div>
+
+<script>
+  const modeEl = document.getElementById('mode');
+  const xEl = document.getElementById('xInput');
+  const yEl = document.getElementById('yInput');
+  const btn = document.getElementById('calcBtn');
+  const res = document.getElementById('result');
+
+  function updatePlaceholders() {
+    const m = modeEl.value;
+    if (m === 'percentOfNumber') {
+      xEl.placeholder = 'Процент (X)';
+      yEl.placeholder = 'Число (Y)';
+    } else if (m === 'numberIsPercent') {
+      xEl.placeholder = 'Число (X)';
+      yEl.placeholder = 'Число (Y)';
+    } else {
+      xEl.placeholder = 'Процент (X)';
+      yEl.placeholder = 'Результат (Y)';
+    }
+    res.textContent = '';
+  }
+
+  function calculate() {
+    const x = parseFloat(xEl.value);
+    const y = parseFloat(yEl.value);
+    if (isNaN(x) || isNaN(y)) {
+      res.textContent = 'Введите оба значения';
+      return;
+    }
+    let text = '';
+    if (modeEl.value === 'percentOfNumber') {
+      text = `${x}% от ${y} = ${(x / 100 * y).toFixed(2)}`;
+    } else if (modeEl.value === 'numberIsPercent') {
+      text = `${x} — это ${(x / y * 100).toFixed(2)}% от ${y}`;
+    } else {
+      const base = y / (x / 100);
+      text = `${x}% от ${base.toFixed(2)} = ${y}`;
+    }
+    res.textContent = text;
+  }
+
+  modeEl.addEventListener('change', updatePlaceholders);
+  btn.addEventListener('click', calculate);
+  [xEl, yEl].forEach(el =>
+    el.addEventListener('keypress', ev => {
+      if (ev.key === 'Enter') calculate();
+    })
+  );
+
+  updatePlaceholders();
+</script>
+
+</body>
+</html>
