@@ -299,7 +299,7 @@
   });
 
   // ————— Таймер —————
-  let timerInterval, total, initialTotal, isPaused = false;
+  let timerInterval = null, total = 0, initialTotal = 0, isPaused = false;
   const display = document.getElementById('timerDisplay'),
         beep = document.getElementById('beep'),
         timerBtn = document.getElementById('timerBtn'),
@@ -316,6 +316,7 @@
       timerBtn.querySelector('span').textContent = 'Start Timer';
       timerInterval = null;
       isPaused = false;
+      progressBar.style.setProperty('--progress', '0%');
     } else {
       const m = Math.floor(total / 60), s = total % 60;
       display.textContent = `${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
@@ -325,16 +326,16 @@
   }
 
   timerBtn.addEventListener('click', () => {
-    if (timerInterval) {
-      if (isPaused) {
-        timerInterval = setInterval(updateTimer, 1000);
-        timerBtn.querySelector('span').textContent = 'Pause Timer';
-        isPaused = false;
-      } else {
-        clearInterval(timerInterval);
-        timerBtn.querySelector('span').textContent = 'Resume Timer';
-        isPaused = true;
-      }
+    if (timerInterval && !isPaused) {
+      clearInterval(timerInterval);
+      timerBtn.querySelector('span').textContent = 'Resume Timer';
+      isPaused = true;
+      return;
+    }
+    if (isPaused) {
+      timerInterval = setInterval(updateTimer, 1000);
+      timerBtn.querySelector('span').textContent = 'Pause Timer';
+      isPaused = false;
       return;
     }
     const mins = parseInt(document.getElementById('minInput').value) || 0;
@@ -350,11 +351,13 @@
 
   resetTimerBtn.addEventListener('click', () => {
     clearInterval(timerInterval);
+    timerInterval = null;
     total = 0;
+    initialTotal = 0;
+    isPaused = false;
     display.textContent = '00:00';
     display.classList.remove('ending');
     timerBtn.querySelector('span').textContent = 'Start Timer';
-    isPaused = false;
     document.getElementById('minInput').value = '';
     document.getElementById('secInput').value = '';
     progressBar.style.setProperty('--progress', '0%');
