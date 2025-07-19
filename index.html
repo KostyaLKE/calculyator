@@ -56,6 +56,13 @@
     .calculator button:hover {
       background: #357ab8;
     }
+    #openTiny {
+      margin-top: 15px;
+      background: #34a853;
+    }
+    #openTiny:hover {
+      background: #2c8e47;
+    }
     .calculator .result {
       margin-top: 20px;
       font-size: 18px;
@@ -79,6 +86,8 @@
 
   <button id="calcBtn">Рассчитать</button>
   <div class="result" id="result"></div>
+
+  <button id="openTiny">Открыть компактное окно</button>
 </div>
 
 <script>
@@ -129,6 +138,14 @@
       if (ev.key === 'Enter') calculate();
     })
   );
+
+  document.getElementById('openTiny').addEventListener('click', () => {
+    window.open(
+      window.location.href,
+      'tinyCalc',
+      'width=300,height=500,left=100,top=100'
+    );
+  });
 
   updatePlaceholders();
 </script>
