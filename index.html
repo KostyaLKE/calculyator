@@ -6,83 +6,103 @@
   <title>Калькулятор + Таймер</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
-    * { box-sizing: border-box; }
-    body { 
+    * { 
+      box-sizing: border-box; 
       margin: 0; 
+      padding: 0; 
+    }
+    body { 
       display: flex; 
       height: 100vh; 
       justify-content: center; 
       align-items: center;
-      background: #eef2f7; 
-      font-family: 'Segoe UI', Tahoma, sans-serif; 
+      background: #F2F2F7; 
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif; 
       transition: background 0.3s;
     }
-    body.dark { background: #333; }
+    body.dark { background: #1C2526; }
     .calculator { 
-      background: #fff; 
+      background: rgba(255, 255, 255, 0.9); 
+      backdrop-filter: blur(10px);
       border-radius: 12px; 
-      box-shadow: 0 4px 16px rgba(0,0,0,0.1);
-      padding: 20px; 
+      box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+      padding: 16px; 
       width: 320px; 
       text-align: center; 
       transition: background 0.3s;
     }
-    .calculator.dark { background: #444; color: #fff; }
-    h2 { color: #333; font-weight: 500; margin-bottom: 12px; }
-    .calculator.dark h2 { color: #fff; }
+    .calculator.dark { 
+      background: rgba(28, 37, 38, 0.9); 
+      color: #FFF; 
+    }
     input, select { 
       padding: 10px; 
-      margin: 5px 0; 
-      border: 1px solid #ccd0d5;
-      border-radius: 6px; 
+      margin: 6px 0; 
+      border: 1px solid rgba(0, 0, 0, 0.1);
+      border-radius: 10px; 
       font-size: 14px; 
       width: 100%; 
+      background: rgba(255, 255, 255, 0.7);
       transition: border-color 0.3s;
     }
     .calculator.dark input, .calculator.dark select { 
-      background: #555; 
-      color: #fff; 
-      border-color: #666; 
+      background: rgba(255, 255, 255, 0.1); 
+      color: #FFF; 
+      border-color: rgba(255, 255, 255, 0.2); 
     }
-    input.invalid { border-color: red; }
+    input.invalid { border-color: #FF3B30; }
     button { 
       padding: 8px; 
-      margin: 12px 4px; 
+      margin: 10px 4px; 
       border: none; 
-      color: #fff; 
+      color: #FFF; 
       font-size: 14px;
-      border-radius: 6px; 
+      border-radius: 10px; 
       cursor: pointer; 
       transition: background 0.3s, transform 0.1s; 
       display: flex; 
       align-items: center; 
-      justify-content: center; 
-      gap: 8px;
+      justify-content: center;
+      gap: 6px;
     }
-    button:active { transform: scale(0.95); }
+    button:active { transform: scale(0.98); }
     #calcBtn { 
-      background: #4a90e2; 
+      background: #007AFF; 
       width: 100%; 
+      font-weight: 600;
     } 
-    #calcBtn:hover { background: #357ab8; }
+    #calcBtn:hover { background: #005BB5; }
     #openTiny, #toggleTheme, #clearHistory { 
-      background: #7f8c8d; 
+      background: rgba(120, 120, 128, 0.2); 
       width: calc(33.33% - 8px); 
-      height: 36px; 
+      height: 34px; 
       padding: 6px; 
+      color: #007AFF;
+    }
+    .calculator.dark #openTiny, 
+    .calculator.dark #toggleTheme, 
+    .calculator.dark #clearHistory { 
+      background: rgba(255, 255, 255, 0.1); 
+      color: #FFF; 
     }
     #openTiny:hover, #toggleTheme:hover, #clearHistory:hover { 
-      background: #6c7a89; 
+      background: rgba(120, 120, 128, 0.3); 
+    }
+    .calculator.dark #openTiny:hover, 
+    .calculator.dark #toggleTheme:hover, 
+    .calculator.dark #clearHistory:hover { 
+      background: rgba(255, 255, 255, 0.2); 
     }
     #timerBtn, #resetTimerBtn { 
-      background: #f39c12; 
+      background: #007AFF; 
       width: calc(50% - 8px); 
+      font-weight: 500;
     }
     #timerBtn:hover, #resetTimerBtn:hover { 
-      background: #d77b0c; 
+      background: #005BB5; 
     }
-    #resetTimerBtn { background: #e74c3c; } 
-    #resetTimerBtn:hover { background: #c0392b; }
+    #resetTimerBtn { background: #FF3B30; } 
+    #resetTimerBtn:hover { background: #D32F2F; }
     .button-group { 
       display: flex; 
       justify-content: space-between; 
@@ -94,82 +114,85 @@
       justify-content: space-between; 
       flex-wrap: nowrap; 
       align-items: center;
-      margin-top: 10px;
+      margin-top: 8px;
     }
     .result { 
-      margin-top: 10px; 
-      font-size: 16px; 
+      margin-top: 8px; 
+      font-size: 15px; 
       min-height: 20px; 
-      color: #222; 
-      background: #f0f4f8;
-      border: 1px solid #ccd0d5;
-      border-radius: 6px;
+      color: #000; 
+      background: rgba(255, 255, 255, 0.7);
+      backdrop-filter: blur(5px);
+      border-radius: 10px;
       padding: 8px;
+      font-weight: 500;
     }
     .calculator.dark .result { 
-      color: #fff; 
-      background: #555; 
-      border-color: #666; 
+      color: #FFF; 
+      background: rgba(255, 255, 255, 0.1); 
     }
     .history { 
       text-align: left; 
       max-height: 100px; 
       overflow-y: auto; 
       margin: 8px 0; 
-      padding: 4px;
-      border: 1px solid #ddd; 
-      border-radius: 6px; 
-      background: #fafafa; 
-      font-size: 12px; 
-      opacity: 0.85;
+      padding: 6px;
+      background: rgba(255, 255, 255, 0.8);
+      backdrop-filter: blur(5px);
+      border: 1px solid rgba(0, 0, 0, 0.1);
+      border-radius: 10px; 
+      font-size: 13px; 
+      opacity: 0.9;
+      color: #000;
     }
     .calculator.dark .history { 
-      background: #555; 
-      border-color: #666; 
+      background: rgba(255, 255, 255, 0.15); 
+      color: #FFF; 
+      border: 1px solid rgba(255, 255, 255, 0.2);
     }
-    .history-item { margin-bottom: 3px; }
+    .history-item { margin-bottom: 4px; }
     .timer-block { 
       display: flex; 
       justify-content: space-between; 
-      margin-top: 10px; 
+      margin-top: 8px; 
     }
-    .timer-block input { width: 48%; }
+    .timer-block input { width: calc(50% - 4px); }
     .timer-display { 
-      margin-top: 10px; 
-      font-size: 22px; 
-      color: green; 
-      font-weight: bold; 
+      margin-top: 8px; 
+      font-size: 20px; 
+      color: #34C759; 
+      font-weight: 600; 
     }
-    .timer-display.ending { color: red; }
+    .timer-display.ending { color: #FF3B30; }
     .progress-bar {
-      height: 10px;
-      background: #ddd;
-      border-radius: 5px;
-      margin-top: 10px;
+      height: 6px;
+      background: rgba(0, 0, 0, 0.1);
+      border-radius: 3px;
+      margin-top: 8px;
       overflow: hidden;
     }
-    .calculator.dark .progress-bar { background: #666; }
+    .calculator.dark .progress-bar { background: rgba(255, 255, 255, 0.2); }
     .progress-bar::before {
       content: '';
       display: block;
       height: 100%;
-      background: #4a90e2;
+      background: #007AFF;
       width: var(--progress, 0);
-      transition: width 1s linear;
+      transition: width 0.5s ease-out;
     }
     [title]:hover:after {
       content: attr(title);
       position: absolute;
-      background: #333;
-      color: #fff;
-      padding: 5px;
-      border-radius: 4px;
+      background: rgba(0, 0, 0, 0.8);
+      color: #FFF;
+      padding: 4px 8px;
+      border-radius: 6px;
       font-size: 12px;
       z-index: 10;
     }
     @media (max-width: 400px) {
-      .calculator { width: 90%; padding: 15px; }
-      input, select, button { font-size: 12px; }
+      .calculator { width: 90%; padding: 12px; }
+      input, select, button { font-size: 13px; }
       #openTiny, #toggleTheme, #clearHistory { 
         width: calc(33.33% - 6px); 
         height: 32px; 
@@ -190,11 +213,11 @@
   </select>
   <input type="number" id="xInput" placeholder="Процент (X)" title="Введите процентное значение (X)" />
   <input type="number" id="yInput" placeholder="Результат (Y)" title="Введите число или результат (Y)" />
-  <button id="calcBtn"><i class="fas fa-calculator"></i> Рассчитать</button>
+  <button id="calcBtn"><i class="fas fa-calculator"></i> <span>Рассчитать</span></button>
   <div class="result" id="result"></div>
   <div class="history" id="history"></div>
   <div class="button-group">
-    <button id="clearHistory" title="Очистить историю"><i class="fas fa-trash"></i></button>
+    <button id="clearHistory" title="Очистить историю"><i class="fas fa-trash-can"></i></button>
     <button id="openTiny" title="Открыть компактное окно"><i class="fas fa-window-restore"></i></button>
     <button id="toggleTheme" title="Переключить тему"><i class="fas fa-moon"></i></button>
   </div>
@@ -204,7 +227,7 @@
   </div>
   <div class="timer-button-group">
     <button id="timerBtn"><i class="fas fa-clock"></i> <span>Start Timer</span></button>
-    <button id="resetTimerBtn"><i class="fas fa-undo"></i> <span>Reset Timer</span></button>
+    <button id="resetTimerBtn"><i class="fas fa-rotate-left"></i> <span>Reset Timer</span></button>
   </div>
   <div class="timer-display" id="timerDisplay">00:00</div>
   <div class="progress-bar" id="progressBar"></div>
@@ -387,11 +410,10 @@
       return;
     }
     if (isPaused) {
-      const mins = parseInt(minInput.value) || 0;
-      const secs = parseInt(secInput.value) || 0;
-      total = mins * 60 + secs;
-      if (total <= 0) return alert('Установите время.');
-      initialTotal = total;
+      if (total <= 0) {
+        alert('Установите время.');
+        return;
+      }
       timerInterval = setInterval(updateTimer, 1000);
       timerBtn.querySelector('span').textContent = 'Pause Timer';
       isPaused = false;
