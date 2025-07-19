@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <title>Калькулятор + Таймер</title>
+ 
   <style>
     * { box-sizing: border-box; }
     body { margin:0; display:flex; height:100vh; justify-content:center; align-items:center;
@@ -54,7 +54,7 @@
 </div>
 
 <script>
-  // Калькулятор
+  // ————— Калькулятор + История —————
   const modeEl = document.getElementById('mode'),
         xEl = document.getElementById('xInput'),
         yEl = document.getElementById('yInput'),
@@ -64,7 +64,7 @@
         clearBtn = document.getElementById('clearHistory'),
         openTiny = document.getElementById('openTiny');
 
-  let history = [];
+  let historyArr = [];
 
   function updatePlaceholders() {
     if(modeEl.value === 'percentOfNumber') {
@@ -78,61 +78,78 @@
   }
 
   function addHistory(item) {
-    history.unshift(item);
-    hist.innerHTML = history.map(h=>'<div class="history-item">'+h+'</div>').join('');
+    historyArr.unshift(item);
+    hist.innerHTML = historyArr.map(h=>'<div class="history-item">'+h+'</div>').join('');
   }
 
   function calculate() {
     const x=parseFloat(xEl.value), y=parseFloat(yEl.value);
-    if(isNaN(x)||isNaN(y)) { res.textContent='Введите оба значения'; return; }
+    if(isNaN(x)||isNaN(y)) {
+      res.textContent='Введите оба значения';
+      return;
+    }
     let text='';
-    if(modeEl.value==='percentOfNumber')      text = `${x}% от ${y} = ${(x/100*y).toFixed(2)}`;
-    else if(modeEl.value==='numberIsPercent') text = `${x} = ${(x/y*100).toFixed(2)}% от ${y}`;
-    else {
+    if(modeEl.value==='percentOfNumber') {
+      text = `${x}% от ${y} = ${(x/100*y).toFixed(2)}`;
+    } else if(modeEl.value==='numberIsPercent') {
+      text = `${x} = ${(x/y*100).toFixed(2)}% от ${y}`;
+    } else {
       const base = y / (x/100);
       text = `${x}% от ${base.toFixed(2)} = ${y}`;
     }
-    res.textContent=text; addHistory(text);
+    res.textContent = text;
+    addHistory(text);
   }
 
   btn.addEventListener('click', calculate);
-  [xEl,yEl].forEach(el=>el.addEventListener('keypress',ev=>ev.key==='Enter'&&calculate()));
-  clearBtn.addEventListener('click',()=>{ history=[]; hist.innerHTML=''; });
-  modeEl.addEventListener('change',updatePlaceholders);
+  [xEl,yEl].forEach(el => 
+    el.addEventListener('keypress', ev => ev.key==='Enter' && calculate())
+  );
+  clearBtn.addEventListener('click', () => {
+    historyArr = [];
+    hist.innerHTML = '';
+  });
+  modeEl.addEventListener('change', updatePlaceholders);
   updatePlaceholders();
 
-  // Компактное окно
-  openTiny.addEventListener('click',()=>{
-    openTiny.style.display='none';
-    window.open(window.location.href,'tinyCalc','width=300,height=500,left=100,top=100');
+  // ————— Компактное окно —————
+  if (window.name === 'tinyCalc') openTiny.style.display = 'none';
+
+  openTiny.addEventListener('click', () => {
+    window.open(window.location.href, 'tinyCalc', 'width=300,height=500,left=100,top=100');
+    openTiny.style.display = 'none';
   });
 
-  // Таймер
+  // ————— Таймер —————
   let timerInterval, total;
   const display = document.getElementById('timerDisplay'),
         beep = document.getElementById('beep'),
         timerBtn = document.getElementById('timerBtn');
 
-  timerBtn.addEventListener('click',()=>{
+  timerBtn.addEventListener('click', () => {
     clearInterval(timerInterval);
-    const mins = parseInt(document.getElementById('minInput').value)||0,
-          secs = parseInt(document.getElementById('secInput').value)||0;
-    total = mins*60+secs;
-    if(total<=0) return alert('Установите время.');
-    timerInterval = setInterval(()=>{
-      if(total<=0){
+    const mins = parseInt(document.getElementById('minInput').value) || 0;
+    const secs = parseInt(document.getElementById('secInput').value) || 0;
+    total = mins * 60 + secs;
+    if(total <= 0) return alert('Установите время.');
+
+    display.classList.remove('ending');
+    timerInterval = setInterval(() => {
+      total--;
+      if(total < 0) {
         clearInterval(timerInterval);
-        display.textContent='00:00';
+        display.textContent = '00:00';
         display.classList.add('ending');
         beep.play();
       } else {
-        total--;
-        const m=Math.floor(total/60), s=total%60;
+        const m = Math.floor(total / 60),
+              s = total % 60;
         display.textContent = `${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
-        display.classList.toggle('ending', total<10);
+        if(total < 10) display.classList.add('ending');
       }
-    },1000);
+    }, 1000);
   });
 </script>
+
 </body>
 </html>
