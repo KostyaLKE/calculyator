@@ -2,174 +2,137 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <title>Процентный калькулятор + Таймер</title>
+  <title>Калькулятор + Таймер</title>
   <style>
     * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      display: flex;
-      height: 100vh;
-      justify-content: center;
-      align-items: center;
-      background: #eef2f7;
-      font-family: 'Segoe UI', Tahoma, sans-serif;
-    }
-    .calculator {
-      background: #fff;
-      border-radius: 12px;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.1);
-      padding: 30px;
-      width: 320px;
-      text-align: center;
-    }
-    .calculator h2 {
-      color: #333;
-      font-weight: 500;
-      margin-bottom: 20px;
-    }
-    .calculator input, .calculator select {
-      width: 100%;
-      padding: 12px;
-      margin-bottom: 15px;
-      border: 1px solid #ccd0d5;
-      border-radius: 6px;
-      font-size: 16px;
-    }
-    .calculator button {
-      width: 100%;
-      padding: 12px;
-      margin-top: 5px;
-      border: none;
-      color: white;
-      font-size: 16px;
-      border-radius: 6px;
-      cursor: pointer;
-      transition: background 0.3s;
-    }
-    #calcBtn { background: #4a90e2; }
-    #calcBtn:hover { background: #357ab8; }
-    #openTiny { background: #34a853; }
-    #openTiny:hover { background: #2c8e47; }
-    #timerBtn { background: #f39c12; margin-top: 10px;}
-    #timerBtn:hover { background: #d77b0c; }
-    .result {
-      margin-top: 20px;
-      font-size: 18px;
-      min-height: 24px;
-      color: #222;
-    }
-    .timer-display {
-      margin-top: 15px;
-      font-size: 24px;
-      color: green;
-      font-weight: bold;
-    }
-    .timer-display.ending {
-      color: red;
-    }
+    body { margin:0; display:flex; height:100vh; justify-content:center; align-items:center;
+           background:#eef2f7; font-family:'Segoe UI', Tahoma, sans-serif; }
+    .calculator { background:#fff; border-radius:12px; box-shadow:0 4px 16px rgba(0,0,0,0.1);
+                  padding:20px; width:320px; text-align:center; }
+    h2 { color:#333; font-weight:500; margin-bottom:12px; }
+    input, select { padding:10px; margin:5px 0; border:1px solid #ccd0d5;
+                    border-radius:6px; font-size:14px; width:100%; }
+    button { padding:10px; margin:8px 0; border:none; color:#fff; font-size:14px;
+             border-radius:6px; cursor:pointer; transition:background .3s; width:100%; }
+    #calcBtn { background:#4a90e2; } #calcBtn:hover { background:#357ab8; }
+    #openTiny { background:#34a853; } #openTiny:hover { background:#2c8e47; }
+    #timerBtn { background:#f39c12; } #timerBtn:hover { background:#d77b0c; }
+    .result { margin-top:10px; font-size:16px; min-height:20px; color:#222; }
+    .history { text-align:left; max-height:100px; overflow-y:auto; margin:10px 0; padding:5px;
+               border:1px solid #ddd; border-radius:6px; background:#fafafa; font-size:14px; }
+    .history-item { margin-bottom:4px; }
+    .timer-block { display:flex; justify-content:space-between; margin-top:10px; }
+    .timer-block input { width:48%; }
+    .timer-display { margin-top:10px; font-size:22px; color:green; font-weight:bold; }
+    .timer-display.ending { color:red; }
   </style>
 </head>
 <body>
 
 <div class="calculator">
-  <h2>Процентный калькулятор + Таймер</h2>
-
+  <h2>Калькулятор + Таймер</h2>
   <select id="mode">
-    <option value="percentOfNumber">Сколько будет X% от числа Y?</option>
-    <option value="numberIsPercent">X — это сколько % от Y?</option>
-    <option value="numberFromPercent" selected>X% от какого числа равно Y?</option>
+    <option value="percentOfNumber">X% от числа Y?</option>
+    <option value="numberIsPercent">X — сколько % от Y?</option>
+    <option value="numberFromPercent" selected>X% от какого числа Y?</option>
   </select>
-
   <input type="number" id="xInput" placeholder="Процент (X)" />
   <input type="number" id="yInput" placeholder="Результат (Y)" />
-
   <button id="calcBtn">Рассчитать</button>
   <div class="result" id="result"></div>
-
+  <div class="history" id="history"></div>
+  <button id="clearHistory">Очистить историю</button>
   <button id="openTiny">Открыть компактное окно</button>
-
-  <hr>
-
-  <input type="number" id="minInput" placeholder="Минуты" style="margin-top:15px"/>
-  <input type="number" id="secInput" placeholder="Секунды" />
+  
+  <div class="timer-block">
+    <input type="number" id="minInput" placeholder="Мин" />
+    <input type="number" id="secInput" placeholder="Сек" />
+  </div>
   <button id="timerBtn">Start Timer</button>
   <div class="timer-display" id="timerDisplay">00:00</div>
   <audio id="beep" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg" preload="auto"></audio>
 </div>
 
 <script>
-  // ————— Процентный калькулятор —————
-  const modeEl = document.getElementById('mode');
-  const xEl = document.getElementById('xInput');
-  const yEl = document.getElementById('yInput');
-  const btn = document.getElementById('calcBtn');
-  const res = document.getElementById('result');
+  // Калькулятор
+  const modeEl = document.getElementById('mode'),
+        xEl = document.getElementById('xInput'),
+        yEl = document.getElementById('yInput'),
+        btn = document.getElementById('calcBtn'),
+        res = document.getElementById('result'),
+        hist = document.getElementById('history'),
+        clearBtn = document.getElementById('clearHistory'),
+        openTiny = document.getElementById('openTiny');
+
+  let history = [];
 
   function updatePlaceholders() {
-    const m = modeEl.value;
-    if (m === 'percentOfNumber') {
-      xEl.placeholder = 'Процент (X)'; yEl.placeholder = 'Число (Y)';
-    } else if (m === 'numberIsPercent') {
-      xEl.placeholder = 'Число (X)'; yEl.placeholder = 'Число (Y)';
+    if(modeEl.value === 'percentOfNumber') {
+      xEl.placeholder='Процент (X)'; yEl.placeholder='Число (Y)';
+    } else if(modeEl.value === 'numberIsPercent') {
+      xEl.placeholder='Число (X)'; yEl.placeholder='Число (Y)';
     } else {
-      xEl.placeholder = 'Процент (X)'; yEl.placeholder = 'Результат (Y)';
+      xEl.placeholder='Процент (X)'; yEl.placeholder='Результат (Y)';
     }
-    res.textContent = '';
+    res.textContent='';
+  }
+
+  function addHistory(item) {
+    history.unshift(item);
+    hist.innerHTML = history.map(h=>'<div class="history-item">'+h+'</div>').join('');
   }
 
   function calculate() {
-    const x = parseFloat(xEl.value), y = parseFloat(yEl.value);
-    if (isNaN(x) || isNaN(y)) { res.textContent = 'Введите оба значения'; return; }
-    let text = '';
-    if (modeEl.value === 'percentOfNumber') {
-      text = `${x}% от ${y} = ${(x / 100 * y).toFixed(2)}`;
-    } else if (modeEl.value === 'numberIsPercent') {
-      text = `${x} — это ${(x / y * 100).toFixed(2)}% от ${y}`;
-    } else {
-      const base = y / (x / 100);
+    const x=parseFloat(xEl.value), y=parseFloat(yEl.value);
+    if(isNaN(x)||isNaN(y)) { res.textContent='Введите оба значения'; return; }
+    let text='';
+    if(modeEl.value==='percentOfNumber')      text = `${x}% от ${y} = ${(x/100*y).toFixed(2)}`;
+    else if(modeEl.value==='numberIsPercent') text = `${x} = ${(x/y*100).toFixed(2)}% от ${y}`;
+    else {
+      const base = y / (x/100);
       text = `${x}% от ${base.toFixed(2)} = ${y}`;
     }
-    res.textContent = text;
+    res.textContent=text; addHistory(text);
   }
 
-  modeEl.addEventListener('change', updatePlaceholders);
   btn.addEventListener('click', calculate);
-  [xEl, yEl].forEach(el => el.addEventListener('keypress', ev => ev.key === 'Enter' && calculate()));
-
-  document.getElementById('openTiny').addEventListener('click', () => {
-    window.open(window.location.href, 'tinyCalc', 'width=300,height=500,left=100,top=100');
-  });
-
+  [xEl,yEl].forEach(el=>el.addEventListener('keypress',ev=>ev.key==='Enter'&&calculate()));
+  clearBtn.addEventListener('click',()=>{ history=[]; hist.innerHTML=''; });
+  modeEl.addEventListener('change',updatePlaceholders);
   updatePlaceholders();
 
-  // ————— Таймер обратного отсчёта —————
-  let timerInterval;
-  const display = document.getElementById('timerDisplay');
-  const beep = document.getElementById('beep');
+  // Компактное окно
+  openTiny.addEventListener('click',()=>{
+    openTiny.style.display='none';
+    window.open(window.location.href,'tinyCalc','width=300,height=500,left=100,top=100');
+  });
 
-  document.getElementById('timerBtn').addEventListener('click', () => {
+  // Таймер
+  let timerInterval, total;
+  const display = document.getElementById('timerDisplay'),
+        beep = document.getElementById('beep'),
+        timerBtn = document.getElementById('timerBtn');
+
+  timerBtn.addEventListener('click',()=>{
     clearInterval(timerInterval);
-    let mins = parseInt(document.getElementById('minInput').value) || 0;
-    let secs = parseInt(document.getElementById('secInput').value) || 0;
-    let total = mins * 60 + secs;
-    if (total <= 0) return alert('Установите время.');
-
-    timerInterval = setInterval(() => {
-      if (total <= 0) {
+    const mins = parseInt(document.getElementById('minInput').value)||0,
+          secs = parseInt(document.getElementById('secInput').value)||0;
+    total = mins*60+secs;
+    if(total<=0) return alert('Установите время.');
+    timerInterval = setInterval(()=>{
+      if(total<=0){
         clearInterval(timerInterval);
-        display.textContent = "00:00";
+        display.textContent='00:00';
         display.classList.add('ending');
         beep.play();
       } else {
         total--;
-        const m = Math.floor(total / 60);
-        const s = total % 60;
+        const m=Math.floor(total/60), s=total%60;
         display.textContent = `${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
-        display.classList.toggle('ending', total < 10);
+        display.classList.toggle('ending', total<10);
       }
-    }, 1000);
+    },1000);
   });
 </script>
-
 </body>
 </html>
