@@ -3,6 +3,16 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Мета-теги для iOS PWA -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-title" content="Калькулятор + Таймер">
+  <!-- Ссылка на манифест -->
+  <link rel="manifest" href="/manifest.json">
+  <!-- Иконки для домашнего экрана -->
+  <link rel="apple-touch-icon" href="/icons/icon-192x192.png">
+  <link rel="apple-touch-icon" sizes="192x192" href="/icons/icon-192x192.png">
+  <link rel="apple-touch-icon" sizes="512x512" href="/icons/icon-512x512.png">
   <title>Калькулятор + Таймер</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
@@ -275,6 +285,12 @@
       font-weight: 600; 
     }
     .timer-display.ending { color: #FF3B30; }
+    .timer-warning {
+      margin-top: 4px;
+      font-size: 12px;
+      color: #FF3B30;
+      text-align: center;
+    }
     .progress-bar {
       height: 6px;
       background: rgba(0, 0, 0, 0.1);
@@ -365,6 +381,7 @@
     <button id="resetTimerBtn"><i class="fas fa-rotate-left"></i> <span>Reset Timer</span></button>
   </div>
   <div class="timer-display" id="timerDisplay">00:00</div>
+  <div class="timer-warning">Таймер работает только при открытой вкладке в Safari.</div>
   <div class="progress-bar" id="progressBar"></div>
   <audio id="beep" preload="auto">
     <source src="https://www.soundjay.com/buttons/beep-01a.mp3" type="audio/mpeg">
@@ -373,6 +390,15 @@
 </div>
 
 <script>
+  // ————— Регистрация Service Worker —————
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js')
+        .then(reg => console.log('Service Worker зарегистрирован:', reg))
+        .catch(err => console.warn('Ошибка регистрации Service Worker:', err));
+    });
+  }
+
   // ————— Уведомления —————
   async function requestNotificationPermission() {
     if (!('Notification' in window)) return false;
@@ -467,8 +493,7 @@
   }
 
   function addHistory(item) {
-    // Удаляем слово "Копировать" и HTML-теги
-    const cleanItem = item.replace(/Копировать/g, '').replace(/<[^>]+>/g, '');
+    const cleanItem = item.replace(/<[^>]+>/g, '');
     historyArr.unshift(cleanItem);
     try {
       localStorage.setItem('calcHistory', JSON.stringify(historyArr));
@@ -524,7 +549,7 @@
     let result = `${x}% от ${base.toFixed(2)} = ${y}`;
     if (!isNaN(s) && s !== '') {
       const sum = base + parseFloat(s);
-      result += `<div class="sum-result">Сумма с S: ${sum.toFixed(2)}<button class="copy-btn" onclick="copyToClipboard('${sum.toFixed(2)}')"><i class="fas fa-copy"></i></button></div>`;
+      result += `<div class="sum-result">Сумма с S: ${sum.toFixed(2)}<button class="copy-btn" aria-label="Скопировать сумму" onclick="copyToClipboard('${sum.toFixed(2)}')"><i class="fas fa-copy"></i></button></div>`;
     }
     return result;
   }
@@ -661,8 +686,8 @@
     document.querySelector('.history').classList.toggle('dark');
   });
 
-  // ————— Таймер —————
-  let timerInterval = null, total = 0, initialTotal = 0, isPaused = false;
+  // ————— Таймер с requestAnimationFrame —————
+  let timerInterval = null, total = 0, initialTotal = 0, isPaused = false, lastFrameTime = 0;
   const display = document.getElementById('timerDisplay'),
         timerBtn = document.getElementById('timerBtn'),
         resetTimerBtn = document.getElementById('resetTimerBtn'),
@@ -671,41 +696,49 @@
         secInput = document.getElementById('secInput'),
         beepAudio = document.getElementById('beep');
 
-  function updateTimer() {
-    total--;
-    if (total < 0) {
-      clearInterval(timerInterval);
-      display.textContent = '00:00';
-      display.classList.add('ending');
-      if (audioCtx) {
-        try {
-          beepOsc();
-        } catch (e) {
-          console.warn('Ошибка воспроизведения Web Audio:', e);
+  function updateTimer(time) {
+    if (isPaused || total <= 0) return;
+    
+    if (!lastFrameTime) lastFrameTime = time;
+    const delta = (time - lastFrameTime) / 1000;
+    if (delta >= 1) {
+      total -= Math.floor(delta);
+      lastFrameTime = time;
+      if (total < 0) {
+        total = 0;
+        display.textContent = '00:00';
+        display.classList.add('ending');
+        if (audioCtx) {
+          try {
+            beepOsc();
+          } catch (e) {
+            console.warn('Ошибка воспроизведения Web Audio:', e);
+            try {
+              beepAudio.play();
+            } catch (e) {
+              console.warn('Ошибка воспроизведения запасного звука:', e);
+            }
+          }
+        } else {
           try {
             beepAudio.play();
           } catch (e) {
             console.warn('Ошибка воспроизведения запасного звука:', e);
           }
         }
-      } else {
-        try {
-          beepAudio.play();
-        } catch (e) {
-          console.warn('Ошибка воспроизведения запасного звука:', e);
-        }
+        sendNotification('Таймер завершён', 'Время вышло!');
+        timerBtn.querySelector('span').textContent = 'Start Timer';
+        timerInterval = null;
+        isPaused = false;
+        progressBar.style.setProperty('--progress', '0%');
+        return;
       }
-      sendNotification('Таймер завершён', 'Время вышло!');
-      timerBtn.querySelector('span').textContent = 'Start Timer';
-      timerInterval = null;
-      isPaused = false;
-      progressBar.style.setProperty('--progress', '0%');
-    } else {
       const m = Math.floor(total / 60), s = total % 60;
       display.textContent = `${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
       progressBar.style.setProperty('--progress', `${(total / initialTotal) * 100}%`);
       if (total < 10) display.classList.add('ending');
     }
+    if (timerInterval) requestAnimationFrame(updateTimer);
   }
 
   timerBtn.addEventListener('click', async () => {
@@ -713,7 +746,7 @@
       await requestNotificationPermission();
     }
     if (timerInterval && !isPaused) {
-      clearInterval(timerInterval);
+      timerInterval = null;
       timerBtn.querySelector('span').textContent = 'Resume Timer';
       isPaused = true;
       return;
@@ -723,10 +756,10 @@
         alert('Установите время.');
         return;
       }
-      timerInterval = setInterval(updateTimer, 1000);
+      lastFrameTime = 0;
+      timerInterval = requestAnimationFrame(updateTimer);
       timerBtn.querySelector('span').textContent = 'Pause Timer';
       isPaused = false;
-      progressBar.style.setProperty('--progress', `${(total / initialTotal) * 100}%`);
       return;
     }
     const mins = parseInt(minInput.value) || 0;
@@ -736,13 +769,16 @@
     initialTotal = total;
     display.classList.remove('ending');
     timerBtn.querySelector('span').textContent = 'Pause Timer';
-    timerInterval = setInterval(updateTimer, 1000);
+    lastFrameTime = 0;
+    timerInterval = requestAnimationFrame(updateTimer);
     progressBar.style.setProperty('--progress', '100%');
   });
 
   resetTimerBtn.addEventListener('click', () => {
-    clearInterval(timerInterval);
-    timerInterval = null;
+    if (timerInterval) {
+      cancelAnimationFrame(timerInterval);
+      timerInterval = null;
+    }
     total = 0;
     initialTotal = 0;
     isPaused = false;
@@ -763,14 +799,14 @@
       minInput.classList.remove('invalid');
       secInput.classList.remove('invalid');
       res.textContent = '';
-      // Автоматический старт таймера
       if (!timerInterval) {
         await requestNotificationPermission();
         total = minutes * 60;
         initialTotal = total;
         display.classList.remove('ending');
         timerBtn.querySelector('span').textContent = 'Pause Timer';
-        timerInterval = setInterval(updateTimer, 1000);
+        lastFrameTime = 0;
+        timerInterval = requestAnimationFrame(updateTimer);
         progressBar.style.setProperty('--progress', '100%');
       }
     });
