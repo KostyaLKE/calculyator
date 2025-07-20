@@ -96,26 +96,43 @@
       gap: 6px;
     }
     button:active { transform: scale(0.98); }
-    #openTiny, #toggleTheme, #clearHistory { 
+    #openTiny, #toggleTheme, #clearHistory, #saveResult, #toggleHistory { 
       background: rgba(120, 120, 128, 0.2); 
-      width: calc(33.33% - 8px); 
+      width: calc(25% - 8px); 
       height: 34px; 
       padding: 6px; 
       color: #007AFF;
     }
     .calculator.dark #openTiny, 
     .calculator.dark #toggleTheme, 
-    .calculator.dark #clearHistory { 
+    .calculator.dark #clearHistory,
+    .calculator.dark #saveResult,
+    .calculator.dark #toggleHistory { 
       background: rgba(255, 255, 255, 0.1); 
       color: #FFF; 
     }
-    #openTiny:hover, #toggleTheme:hover, #clearHistory:hover { 
+    #openTiny:hover, #toggleTheme:hover, #clearHistory:hover, #saveResult:hover, #toggleHistory:hover { 
       background: rgba(120, 120, 128, 0.3); 
     }
     .calculator.dark #openTiny:hover, 
     .calculator.dark #toggleTheme:hover, 
-    .calculator.dark #clearHistory:hover { 
+    .calculator.dark #clearHistory:hover,
+    .calculator.dark #saveResult:hover,
+    .calculator.dark #toggleHistory:hover { 
       background: rgba(255, 255, 255, 0.2); 
+    }
+    .mode-group {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 6px;
+    }
+    .mode-group select {
+      flex-grow: 1;
+    }
+    .mode-group #openTiny {
+      width: 34px;
+      height: 34px;
     }
     #timerBtn, #resetTimerBtn { 
       background: #007AFF; 
@@ -133,6 +150,7 @@
       flex-wrap: nowrap; 
       align-items: center;
       margin-top: 8px;
+      gap: 6px;
     }
     .timer-button-group { 
       display: flex; 
@@ -140,6 +158,29 @@
       flex-wrap: nowrap; 
       align-items: center;
       margin-top: 8px;
+    }
+    .quick-timer-buttons {
+      display: flex;
+      justify-content: space-between;
+      gap: 6px;
+      margin-top: 8px;
+    }
+    .quick-timer-buttons button {
+      background: rgba(120, 120, 128, 0.2);
+      color: #007AFF;
+      width: calc(33.33% - 4px);
+      font-size: 13px;
+      padding: 6px;
+    }
+    .calculator.dark .quick-timer-buttons button {
+      background: rgba(255, 255, 255, 0.1);
+      color: #FFF;
+    }
+    .quick-timer-buttons button:hover {
+      background: rgba(120, 120, 128, 0.3);
+    }
+    .calculator.dark .quick-timer-buttons button:hover {
+      background: rgba(255, 255, 255, 0.2);
     }
     .result { 
       margin-top: 8px; 
@@ -151,10 +192,47 @@
       border-radius: 10px;
       padding: 8px;
       font-weight: 500;
+      position: relative;
     }
     .calculator.dark .result { 
       color: #FFF; 
       background: rgba(255, 255, 255, 0.1); 
+    }
+    .sum-result {
+      display: block;
+      margin-top: 8px;
+      padding: 6px 10px;
+      background: rgba(0, 122, 255, 0.2);
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .calculator.dark .sum-result {
+      background: rgba(255, 255, 255, 0.3);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+    .copy-btn {
+      background: #007AFF;
+      color: #FFF;
+      font-size: 12px;
+      padding: 4px 8px;
+      margin-left: 8px;
+      border-radius: 6px;
+      display: inline-flex;
+      gap: 4px;
+      min-width: 32px;
+    }
+    .calculator.dark .copy-btn {
+      background: #005BB5;
+    }
+    .copy-btn:hover {
+      background: #005BB5;
+    }
+    .calculator.dark .copy-btn:hover {
+      background: #004085;
     }
     .history { 
       text-align: left; 
@@ -169,11 +247,19 @@
       font-size: 13px; 
       opacity: 0.9;
       color: #000;
+      transition: max-height 0.3s ease, opacity 0.3s ease;
     }
     .calculator.dark .history { 
       background: rgba(255, 255, 255, 0.15); 
       color: #FFF; 
       border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    .history.hidden {
+      max-height: 0;
+      padding: 0;
+      border: none;
+      opacity: 0;
+      overflow: hidden;
     }
     .history-item { margin-bottom: 4px; }
     .timer-block { 
@@ -220,24 +306,35 @@
       input, select, button { font-size: 13px; }
       .input-group #xInput, .calc-group #sInput { width: calc(33.33% - 3px); }
       .input-group #yInput, .calc-group #calcBtn { width: calc(66.66% - 3px); }
-      #openTiny, #toggleTheme, #clearHistory { 
-        width: calc(33.33% - 6px); 
+      #openTiny, #toggleTheme, #clearHistory, #saveResult, #toggleHistory { 
+        width: calc(25% - 6px); 
         height: 32px; 
         padding: 5px; 
       }
+      .mode-group #openTiny {
+        width: 32px;
+        height: 32px;
+      }
       #timerBtn, #resetTimerBtn { width: calc(50% - 6px); }
+      .quick-timer-buttons button {
+        width: calc(33.33% - 4px);
+        font-size: 12px;
+      }
     }
   </style>
 </head>
 <body>
 
 <div class="calculator">
-  <select id="mode" title="Выберите режим расчета">
-    <option value="percentOfNumber">X% от числа Y?</option>
-    <option value="numberIsPercent">X — сколько % от Y?</option>
-    <option value="numberFromPercent" selected>X% от какого числа Y?</option>
-    <option value="increaseByPercent">Увеличить Y на X%</option>
-  </select>
+  <div class="mode-group">
+    <select id="mode" title="Выберите режим расчета">
+      <option value="percentOfNumber">X% от числа Y?</option>
+      <option value="numberIsPercent">X — сколько % от Y?</option>
+      <option value="numberFromPercent" selected>X% от какого числа Y?</option>
+      <option value="increaseByPercent">Увеличить Y на X%</option>
+    </select>
+    <button id="openTiny" title="Открыть компактное окно"><i class="fas fa-window-restore"></i></button>
+  </div>
   <div class="input-group">
     <input type="number" id="xInput" placeholder="% (X)" title="Введите процентное значение (X)" />
     <input type="text" id="yInput" placeholder="Результат (Y)" title="Введите число или сумму (например, 100+150+230)" />
@@ -250,12 +347,18 @@
   <div class="history" id="history"></div>
   <div class="button-group">
     <button id="clearHistory" title="Очистить историю"><i class="fas fa-trash-can"></i></button>
-    <button id="openTiny" title="Открыть компактное окно"><i class="fas fa-window-restore"></i></button>
+    <button id="saveResult" title="Сохранить результат"><i class="fas fa-save"></i></button>
+    <button id="toggleHistory" title="Свернуть историю"><i class="fas fa-eye-slash"></i></button>
     <button id="toggleTheme" title="Переключить тему"><i class="fas fa-moon"></i></button>
   </div>
   <div class="timer-block">
     <input type="number" id="minInput" placeholder="Мин" title="Введите минуты" />
     <input type="number" id="secInput" placeholder="Сек" title="Введите секунды" />
+  </div>
+  <div class="quick-timer-buttons">
+    <button class="quick-timer" data-minutes="1">1 мин</button>
+    <button class="quick-timer" data-minutes="4">4 мин</button>
+    <button class="quick-timer" data-minutes="10">10 мин</button>
   </div>
   <div class="timer-button-group">
     <button id="timerBtn"><i class="fas fa-clock"></i> <span>Start Timer</span></button>
@@ -295,7 +398,7 @@
   try {
     audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     const gainNode = audioCtx.createGain();
-    gainNode.gain.value = 2.0; // Усиление громкости
+    gainNode.gain.value = 2.0;
     gainNode.connect(audioCtx.destination);
 
     function beepOsc() {
@@ -310,6 +413,38 @@
     console.warn('Web Audio API недоступен:', e);
   }
 
+  // ————— Вспомогательная функция для копирования —————
+  function copyToClipboard(text) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(() => {
+        alert('Скопировано!');
+      }).catch(err => {
+        console.warn('Clipboard API недоступен:', err);
+        fallbackCopyToClipboard(text);
+      });
+    } else {
+      fallbackCopyToClipboard(text);
+    }
+  }
+
+  function fallbackCopyToClipboard(text) {
+    const textArea = document.createElement('textarea');
+    textArea.value = text;
+    textArea.style.position = 'fixed';
+    textArea.style.opacity = '0';
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    try {
+      document.execCommand('copy');
+      alert('Скопировано!');
+    } catch (err) {
+      console.warn('Ошибка копирования через execCommand:', err);
+      alert('Не удалось скопировать. Пожалуйста, скопируйте вручную.');
+    }
+    document.body.removeChild(textArea);
+  }
+
   // ————— Калькулятор + История —————
   const modeEl = document.getElementById('mode'),
         xEl = document.getElementById('xInput'),
@@ -319,6 +454,8 @@
         res = document.getElementById('result'),
         hist = document.getElementById('history'),
         clearBtn = document.getElementById('clearHistory'),
+        saveResultBtn = document.getElementById('saveResult'),
+        toggleHistoryBtn = document.getElementById('toggleHistory'),
         openTiny = document.getElementById('openTiny'),
         toggleTheme = document.getElementById('toggleTheme');
 
@@ -330,7 +467,9 @@
   }
 
   function addHistory(item) {
-    historyArr.unshift(item);
+    // Удаляем слово "Копировать" и HTML-теги
+    const cleanItem = item.replace(/Копировать/g, '').replace(/<[^>]+>/g, '');
+    historyArr.unshift(cleanItem);
     try {
       localStorage.setItem('calcHistory', JSON.stringify(historyArr));
     } catch (e) {
@@ -385,7 +524,7 @@
     let result = `${x}% от ${base.toFixed(2)} = ${y}`;
     if (!isNaN(s) && s !== '') {
       const sum = base + parseFloat(s);
-      result += `, сумма с S: ${sum.toFixed(2)}`;
+      result += `<div class="sum-result">Сумма с S: ${sum.toFixed(2)}<button class="copy-btn" onclick="copyToClipboard('${sum.toFixed(2)}')"><i class="fas fa-copy"></i></button></div>`;
     }
     return result;
   }
@@ -419,7 +558,7 @@
       case 'numberFromPercent': text = calcNumberFromPercent(x, y, s); break;
       case 'increaseByPercent': text = calcIncreaseByPercent(x, y); break;
     }
-    res.textContent = text;
+    res.innerHTML = text;
     addHistory(text);
   }
 
@@ -436,15 +575,35 @@
     }
     hist.innerHTML = '';
   });
+  saveResultBtn.addEventListener('click', () => {
+    const resultText = res.textContent;
+    if (resultText && !resultText.includes('Введите корректные значения') && !resultText.includes('Процент не может быть равен 0') && !resultText.includes('Деление на ноль невозможно')) {
+      addHistory(resultText);
+    } else {
+      alert('Нет результата для сохранения');
+    }
+  });
   modeEl.addEventListener('change', updatePlaceholders);
   updatePlaceholders();
+
+  // Валидация yInput
+  yEl.addEventListener('input', () => {
+    const validInput = /^[0-9+\s]*$/.test(yEl.value);
+    if (!validInput) {
+      yEl.classList.add('invalid');
+      res.textContent = 'Допустимы только цифры, + и пробелы';
+    } else {
+      yEl.classList.remove('invalid');
+      res.textContent = '';
+    }
+  });
 
   [xEl, yEl, sEl, document.getElementById('minInput'), document.getElementById('secInput')].forEach(el => {
     el.addEventListener('input', () => {
       if (el.value < 0 && (el.id === 'minInput' || el.id === 'secInput' || el.id === 'sInput')) {
         el.classList.add('invalid');
         res.textContent = 'Отрицательные значения недопустимы';
-      } else {
+      } else if (el.id !== 'yInput') {
         el.classList.remove('invalid');
         res.textContent = '';
       }
@@ -459,6 +618,31 @@
       document.getElementById('minInput').value = '';
       document.getElementById('secInput').value = '';
       res.textContent = '';
+    }
+  });
+
+  // ————— Сворачивание истории —————
+  let isHistoryHidden = localStorage.getItem('historyHidden') === 'true';
+  if (isHistoryHidden) {
+    hist.classList.add('hidden');
+    toggleHistoryBtn.querySelector('i').classList.replace('fa-eye-slash', 'fa-history');
+    toggleHistoryBtn.title = 'Развернуть историю';
+  }
+
+  toggleHistoryBtn.addEventListener('click', () => {
+    isHistoryHidden = !isHistoryHidden;
+    hist.classList.toggle('hidden');
+    if (isHistoryHidden) {
+      toggleHistoryBtn.querySelector('i').classList.replace('fa-eye-slash', 'fa-history');
+      toggleHistoryBtn.title = 'Развернуть историю';
+    } else {
+      toggleHistoryBtn.querySelector('i').classList.replace('fa-history', 'fa-eye-slash');
+      toggleHistoryBtn.title = 'Свернуть историю';
+    }
+    try {
+      localStorage.setItem('historyHidden', isHistoryHidden);
+    } catch (e) {
+      console.warn('Ошибка сохранения состояния истории в localStorage:', e);
     }
   });
 
@@ -568,6 +752,28 @@
     minInput.value = '';
     secInput.value = '';
     progressBar.style.setProperty('--progress', '0%');
+  });
+
+  // Быстрые значения таймера
+  document.querySelectorAll('.quick-timer').forEach(button => {
+    button.addEventListener('click', async () => {
+      const minutes = parseInt(button.getAttribute('data-minutes'));
+      minInput.value = minutes;
+      secInput.value = '0';
+      minInput.classList.remove('invalid');
+      secInput.classList.remove('invalid');
+      res.textContent = '';
+      // Автоматический старт таймера
+      if (!timerInterval) {
+        await requestNotificationPermission();
+        total = minutes * 60;
+        initialTotal = total;
+        display.classList.remove('ending');
+        timerBtn.querySelector('span').textContent = 'Pause Timer';
+        timerInterval = setInterval(updateTimer, 1000);
+        progressBar.style.setProperty('--progress', '100%');
+      }
+    });
   });
 </script>
 
