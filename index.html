@@ -41,7 +41,6 @@
       border: 1px solid rgba(0, 0, 0, 0.1);
       border-radius: 10px; 
       font-size: 14px; 
-      width: 100%; 
       background: rgba(255, 255, 255, 0.7);
       transition: border-color 0.3s;
     }
@@ -51,6 +50,24 @@
       border-color: rgba(255, 255, 255, 0.2); 
     }
     input.invalid { border-color: #FF3B30; }
+    .input-group {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 6px;
+    }
+    .input-group #xInput {
+      width: calc(33.33% - 4px);
+      order: 1;
+    }
+    .input-group #yInput {
+      width: calc(66.66% - 4px);
+      order: 2;
+    }
+    .input-group #sInput {
+      width: calc(33.33% - 4px);
+      order: 3;
+    }
     button { 
       padding: 8px; 
       margin: 10px 4px; 
@@ -193,6 +210,8 @@
     @media (max-width: 400px) {
       .calculator { width: 90%; padding: 12px; }
       input, select, button { font-size: 13px; }
+      .input-group #xInput, .input-group #sInput { width: calc(33.33% - 3px); }
+      .input-group #yInput { width: calc(66.66% - 3px); }
       #openTiny, #toggleTheme, #clearHistory { 
         width: calc(33.33% - 6px); 
         height: 32px; 
@@ -211,8 +230,11 @@
     <option value="numberFromPercent" selected>X% от какого числа Y?</option>
     <option value="increaseByPercent">Увеличить Y на X%</option>
   </select>
-  <input type="number" id="xInput" placeholder="Процент (X)" title="Введите процентное значение (X)" />
-  <input type="number" id="yInput" placeholder="Результат (Y)" title="Введите число или результат (Y)" />
+  <div class="input-group">
+    <input type="number" id="xInput" placeholder="% (X)" title="Введите процентное значение (X)" />
+    <input type="text" id="yInput" placeholder="Результат (Y)" title="Введите число или сумму (например, 100+150+230)" />
+    <input type="number" id="sInput" placeholder="Суммировать (S)" title="Введите число для суммирования с результатом (S)" />
+  </div>
   <button id="calcBtn"><i class="fas fa-calculator"></i> <span>Рассчитать</span></button>
   <div class="result" id="result"></div>
   <div class="history" id="history"></div>
@@ -239,9 +261,11 @@
 
 <script>
   // ————— Калькулятор + История —————
+  // Инициализация элементов
   const modeEl = document.getElementById('mode'),
         xEl = document.getElementById('xInput'),
         yEl = document.getElementById('yInput'),
+        sEl = document.getElementById('sInput'),
         btn = document.getElementById('calcBtn'),
         res = document.getElementById('result'),
         hist = document.getElementById('history'),
@@ -249,32 +273,61 @@
         openTiny = document.getElementById('openTiny'),
         toggleTheme = document.getElementById('toggleTheme');
 
-  let historyArr = JSON.parse(localStorage.getItem('calcHistory')) || [];
+  // Инициализация истории
+  let historyArr = [];
+  try {
+    historyArr = JSON.parse(localStorage.getItem('calcHistory')) || [];
+  } catch (e) {
+    console.warn('Ошибка доступа к localStorage:', e);
+  }
 
+  // Функция для добавления записи в историю
+  function addHistory(item) {
+    historyArr.unshift(item);
+    try {
+      localStorage.setItem('calcHistory', JSON.stringify(historyArr));
+    } catch (e) {
+      console.warn('Не удалось сохранить историю в localStorage:', e);
+    }
+    hist.innerHTML = historyArr.map(h => '<div class="history-item">' + h + '</div>').join('');
+  }
+
+  // Обновление placeholder'ов и видимости поля S
   function updatePlaceholders() {
     if (modeEl.value === 'percentOfNumber') {
-      xEl.placeholder = 'Процент (X)';
-      yEl.placeholder = 'Число (Y)';
+      xEl.placeholder = '% (X)';
+      yEl.placeholder = 'Результат (Y)';
+      sEl.style.display = 'none';
     } else if (modeEl.value === 'numberIsPercent') {
       xEl.placeholder = 'Число (X)';
       yEl.placeholder = 'Число (Y)';
+      sEl.style.display = 'none';
     } else if (modeEl.value === 'increaseByPercent') {
-      xEl.placeholder = 'Процент (X)';
+      xEl.placeholder = '% (X)';
       yEl.placeholder = 'Число (Y)';
+      sEl.style.display = 'none';
     } else {
-      xEl.placeholder = 'Процент (X)';
+      xEl.placeholder = '% (X)';
       yEl.placeholder = 'Результат (Y)';
+      sEl.style.display = 'block';
     }
     res.textContent = '';
     xEl.focus();
   }
 
-  function addHistory(item) {
-    historyArr.unshift(item);
-    localStorage.setItem('calcHistory', JSON.stringify(historyArr));
-    hist.innerHTML = historyArr.map(h => '<div class="history-item">' + h + '</div>').join('');
+  // Парсинг строки Y (например, "100+150+230")
+  function parseYInput(input) {
+    if (!input.includes('+')) {
+      return parseFloat(input);
+    }
+    const numbers = input.split('+').map(num => parseFloat(num.trim()));
+    if (numbers.some(isNaN)) {
+      return NaN;
+    }
+    return numbers.reduce((sum, num) => sum + num, 0);
   }
 
+  // Функции расчёта
   function calcPercentOfNumber(x, y) {
     return `${x}% от ${y} = ${(x / 100 * y).toFixed(2)}`;
   }
@@ -283,20 +336,29 @@
     return `${x} = ${(x / y * 100).toFixed(2)}% от ${y}`;
   }
 
-  function calcNumberFromPercent(x, y) {
+  function calcNumberFromPercent(x, y, s) {
     const base = y / (x / 100);
-    const sum = base + y;
-    return `${x}% от ${base.toFixed(2)} = ${y}, сумма: ${sum.toFixed(2)}`;
+    let result = `${x}% от ${base.toFixed(2)} = ${y}`;
+    if (!isNaN(s) && s !== '') {
+      const sum = base + parseFloat(s);
+      result += `, сумма с S: ${sum.toFixed(2)}`;
+    }
+    return result;
   }
 
   function calcIncreaseByPercent(x, y) {
     return `${y} + ${x}% = ${((y * (100 + x)) / 100).toFixed(2)}`;
   }
 
+  // Основная функция расчёта
   function calculate() {
-    const x = parseFloat(xEl.value), y = parseFloat(yEl.value);
+    const x = parseFloat(xEl.value);
+    const yRaw = yEl.value.trim();
+    const y = parseYInput(yRaw);
+    const s = sEl.value.trim();
+
     if (isNaN(x) || isNaN(y)) {
-      res.textContent = 'Введите оба значения';
+      res.textContent = 'Введите корректные значения для X и Y';
       return;
     }
     if (modeEl.value === 'numberFromPercent' && x === 0) {
@@ -311,31 +373,36 @@
     switch (modeEl.value) {
       case 'percentOfNumber': text = calcPercentOfNumber(x, y); break;
       case 'numberIsPercent': text = calcNumberIsPercent(x, y); break;
-      case 'numberFromPercent': text = calcNumberFromPercent(x, y); break;
+      case 'numberFromPercent': text = calcNumberFromPercent(x, y, s); break;
       case 'increaseByPercent': text = calcIncreaseByPercent(x, y); break;
     }
     res.textContent = text;
     addHistory(text);
   }
 
+  // Обработчики событий
   btn.addEventListener('click', calculate);
-  [xEl, yEl].forEach(el => 
+  [xEl, yEl, sEl].forEach(el => 
     el.addEventListener('keypress', ev => ev.key === 'Enter' && calculate())
   );
   clearBtn.addEventListener('click', () => {
     historyArr = [];
-    localStorage.setItem('calcHistory', JSON.stringify(historyArr));
+    try {
+      localStorage.setItem('calcHistory', JSON.stringify(historyArr));
+    } catch (e) {
+      console.warn('Не удалось очистить localStorage:', e);
+    }
     hist.innerHTML = '';
   });
   modeEl.addEventListener('change', updatePlaceholders);
   updatePlaceholders();
 
   // Валидация ввода в реальном времени
-  [xEl, yEl, document.getElementById('minInput'), document.getElementById('secInput')].forEach(el => {
+  [xEl, yEl, sEl, document.getElementById('minInput'), document.getElementById('secInput')].forEach(el => {
     el.addEventListener('input', () => {
-      if (el.value < 0 && (el.id === 'minInput' || el.id === 'secInput')) {
+      if (el.value < 0 && (el.id === 'minInput' || el.id === 'secInput' || el.id === 'sInput')) {
         el.classList.add('invalid');
-        res.textContent = 'Отрицательные значения недопустимы для таймера';
+        res.textContent = 'Отрицательные значения недопустимы';
       } else {
         el.classList.remove('invalid');
         res.textContent = '';
@@ -348,6 +415,7 @@
     if (ev.key === 'Escape') {
       xEl.value = '';
       yEl.value = '';
+      sEl.value = '';
       document.getElementById('minInput').value = '';
       document.getElementById('secInput').value = '';
       res.textContent = '';
