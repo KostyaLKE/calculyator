@@ -270,8 +270,47 @@
 </div>
 
 <script>
+  // ————— Уведомления —————
+  async function requestNotificationPermission() {
+    if (!('Notification' in window)) return false;
+    if (Notification.permission === 'granted') return true;
+    if (Notification.permission !== 'denied') {
+      const res = await Notification.requestPermission();
+      return res === 'granted';
+    }
+    return false;
+  }
+
+  function sendNotification(title, body) {
+    if (Notification.permission !== 'granted' || document.hasFocus()) return;
+    const notification = new Notification(title, { body, silent: true });
+    notification.onclick = () => {
+      window.focus();
+      notification.close();
+    };
+  }
+
+  // ————— Web Audio API —————
+  let audioCtx;
+  try {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const gainNode = audioCtx.createGain();
+    gainNode.gain.value = 2.0; // Усиление громкости
+    gainNode.connect(audioCtx.destination);
+
+    function beepOsc() {
+      const osc = audioCtx.createOscillator();
+      osc.type = 'sine';
+      osc.frequency.value = 440;
+      osc.connect(gainNode);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.5);
+    }
+  } catch (e) {
+    console.warn('Web Audio API недоступен:', e);
+  }
+
   // ————— Калькулятор + История —————
-  // Инициализация элементов
   const modeEl = document.getElementById('mode'),
         xEl = document.getElementById('xInput'),
         yEl = document.getElementById('yInput'),
@@ -283,7 +322,6 @@
         openTiny = document.getElementById('openTiny'),
         toggleTheme = document.getElementById('toggleTheme');
 
-  // Инициализация истории
   let historyArr = [];
   try {
     historyArr = JSON.parse(localStorage.getItem('calcHistory')) || [];
@@ -291,7 +329,6 @@
     console.warn('Ошибка доступа к localStorage:', e);
   }
 
-  // Функция для добавления записи в историю
   function addHistory(item) {
     historyArr.unshift(item);
     try {
@@ -302,7 +339,6 @@
     hist.innerHTML = historyArr.map(h => '<div class="history-item">' + h + '</div>').join('');
   }
 
-  // Обновление placeholder'ов и видимости поля S
   function updatePlaceholders() {
     if (modeEl.value === 'percentOfNumber') {
       xEl.placeholder = '% (X)';
@@ -325,7 +361,6 @@
     xEl.focus();
   }
 
-  // Парсинг строки Y (например, "100+150+230")
   function parseYInput(input) {
     if (!input.includes('+')) {
       return parseFloat(input);
@@ -337,7 +372,6 @@
     return numbers.reduce((sum, num) => sum + num, 0);
   }
 
-  // Функции расчёта
   function calcPercentOfNumber(x, y) {
     return `${x}% от ${y} = ${(x / 100 * y).toFixed(2)}`;
   }
@@ -360,7 +394,6 @@
     return `${y} + ${x}% = ${((y * (100 + x)) / 100).toFixed(2)}`;
   }
 
-  // Основная функция расчёта
   function calculate() {
     const x = parseFloat(xEl.value);
     const yRaw = yEl.value.trim();
@@ -390,7 +423,6 @@
     addHistory(text);
   }
 
-  // Обработчики событий
   btn.addEventListener('click', calculate);
   [xEl, yEl, sEl].forEach(el => 
     el.addEventListener('keypress', ev => ev.key === 'Enter' && calculate())
@@ -407,7 +439,6 @@
   modeEl.addEventListener('change', updatePlaceholders);
   updatePlaceholders();
 
-  // Валидация ввода в реальном времени
   [xEl, yEl, sEl, document.getElementById('minInput'), document.getElementById('secInput')].forEach(el => {
     el.addEventListener('input', () => {
       if (el.value < 0 && (el.id === 'minInput' || el.id === 'secInput' || el.id === 'sInput')) {
@@ -420,7 +451,6 @@
     });
   });
 
-  // Сброс полей по Esc
   document.addEventListener('keydown', ev => {
     if (ev.key === 'Escape') {
       xEl.value = '';
@@ -450,12 +480,12 @@
   // ————— Таймер —————
   let timerInterval = null, total = 0, initialTotal = 0, isPaused = false;
   const display = document.getElementById('timerDisplay'),
-        beep = document.getElementById('beep'),
         timerBtn = document.getElementById('timerBtn'),
         resetTimerBtn = document.getElementById('resetTimerBtn'),
         progressBar = document.getElementById('progressBar'),
         minInput = document.getElementById('minInput'),
-        secInput = document.getElementById('secInput');
+        secInput = document.getElementById('secInput'),
+        beepAudio = document.getElementById('beep');
 
   function updateTimer() {
     total--;
@@ -463,11 +493,25 @@
       clearInterval(timerInterval);
       display.textContent = '00:00';
       display.classList.add('ending');
-      try {
-        beep.play();
-      } catch (e) {
-        console.warn('Не удалось воспроизвести звук таймера:', e);
+      if (audioCtx) {
+        try {
+          beepOsc();
+        } catch (e) {
+          console.warn('Ошибка воспроизведения Web Audio:', e);
+          try {
+            beepAudio.play();
+          } catch (e) {
+            console.warn('Ошибка воспроизведения запасного звука:', e);
+          }
+        }
+      } else {
+        try {
+          beepAudio.play();
+        } catch (e) {
+          console.warn('Ошибка воспроизведения запасного звука:', e);
+        }
       }
+      sendNotification('Таймер завершён', 'Время вышло!');
       timerBtn.querySelector('span').textContent = 'Start Timer';
       timerInterval = null;
       isPaused = false;
@@ -480,7 +524,10 @@
     }
   }
 
-  timerBtn.addEventListener('click', () => {
+  timerBtn.addEventListener('click', async () => {
+    if (!timerInterval && total <= 0) {
+      await requestNotificationPermission();
+    }
     if (timerInterval && !isPaused) {
       clearInterval(timerInterval);
       timerBtn.querySelector('span').textContent = 'Resume Timer';
