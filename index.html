@@ -42,7 +42,11 @@
       border-radius: 10px; 
       font-size: 14px; 
       background: rgba(255, 255, 255, 0.7);
-      transition: border-color 0.3s;
+      transition: border-color 0.3s, box-shadow 0.2s;
+    }
+    input:focus, select:focus {
+      outline: none;
+      box-shadow: 0 0 0 2px #007AFF40;
     }
     .calculator.dark input, .calculator.dark select { 
       background: rgba(255, 255, 255, 0.1); 
@@ -95,8 +99,9 @@
       justify-content: center;
       gap: 6px;
     }
+    button:hover { transform: translateY(-1px); }
     button:active { transform: scale(0.98); }
-    #openTiny, #toggleTheme, #clearHistory { 
+    #openTiny, #toggleTheme, #clearHistory, .preset-btn { 
       background: rgba(120, 120, 128, 0.2); 
       width: calc(33.33% - 8px); 
       height: 34px; 
@@ -105,16 +110,18 @@
     }
     .calculator.dark #openTiny, 
     .calculator.dark #toggleTheme, 
-    .calculator.dark #clearHistory { 
+    .calculator.dark #clearHistory,
+    .calculator.dark .preset-btn { 
       background: rgba(255, 255, 255, 0.1); 
       color: #FFF; 
     }
-    #openTiny:hover, #toggleTheme:hover, #clearHistory:hover { 
+    #openTiny:hover, #toggleTheme:hover, #clearHistory:hover, .preset-btn:hover { 
       background: rgba(120, 120, 128, 0.3); 
     }
     .calculator.dark #openTiny:hover, 
     .calculator.dark #toggleTheme:hover, 
-    .calculator.dark #clearHistory:hover { 
+    .calculator.dark #clearHistory:hover,
+    .calculator.dark .preset-btn:hover { 
       background: rgba(255, 255, 255, 0.2); 
     }
     #timerBtn, #resetTimerBtn { 
@@ -127,14 +134,7 @@
     }
     #resetTimerBtn { background: #FF3B30; } 
     #resetTimerBtn:hover { background: #D32F2F; }
-    .button-group { 
-      display: flex; 
-      justify-content: space-between; 
-      flex-wrap: nowrap; 
-      align-items: center;
-      margin-top: 8px;
-    }
-    .timer-button-group { 
+    .button-group, .timer-button-group, .preset-button-group { 
       display: flex; 
       justify-content: space-between; 
       flex-wrap: nowrap; 
@@ -175,7 +175,19 @@
       color: #FFF; 
       border: 1px solid rgba(255, 255, 255, 0.2);
     }
-    .history-item { margin-bottom: 4px; }
+    .history-item { 
+      margin-bottom: 4px; 
+      display: flex; 
+      justify-content: space-between; 
+      align-items: center;
+    }
+    .history-item button { 
+      background: transparent; 
+      color: #007AFF; 
+      padding: 2px; 
+      margin: 0; 
+      font-size: 12px; 
+    }
     .timer-block { 
       display: flex; 
       justify-content: space-between; 
@@ -189,6 +201,13 @@
       font-weight: 600; 
     }
     .timer-display.ending { color: #FF3B30; }
+    .timer-display.blink {
+      animation: blink 0.5s 3;
+    }
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
     .progress-bar {
       height: 6px;
       background: rgba(0, 0, 0, 0.1);
@@ -220,7 +239,7 @@
       input, select, button { font-size: 13px; }
       .input-group #xInput, .calc-group #sInput { width: calc(33.33% - 3px); }
       .input-group #yInput, .calc-group #calcBtn { width: calc(66.66% - 3px); }
-      #openTiny, #toggleTheme, #clearHistory { 
+      #openTiny, #toggleTheme, #clearHistory, .preset-btn { 
         width: calc(33.33% - 6px); 
         height: 32px; 
         padding: 5px; 
@@ -243,7 +262,7 @@
     <input type="text" id="yInput" placeholder="Результат (Y)" title="Введите число или сумму (например, 100+150+230)" />
   </div>
   <div class="calc-group">
-    <input type="number" id="sInput" placeholder="(S)" title="Введите число для суммирования с результатом (S)" />
+    <input type="number" id="sInput" placeholder="Суммировать (S)" title="Введите число для суммирования с результатом (S)" />
     <button id="calcBtn"><i class="fas fa-calculator"></i> <span>Рассчитать</span></button>
   </div>
   <div class="result" id="result"></div>
@@ -256,6 +275,11 @@
   <div class="timer-block">
     <input type="number" id="minInput" placeholder="Мин" title="Введите минуты" />
     <input type="number" id="secInput" placeholder="Сек" title="Введите секунды" />
+  </div>
+  <div class="preset-button-group">
+    <button class="preset-btn" data-min="1">1 мин</button>
+    <button class="preset-btn" data-min="5">5 мин</button>
+    <button class="preset-btn" data-min="10">10 мин</button>
   </div>
   <div class="timer-button-group">
     <button id="timerBtn"><i class="fas fa-clock"></i> <span>Start Timer</span></button>
@@ -295,7 +319,7 @@
   try {
     audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     const gainNode = audioCtx.createGain();
-    gainNode.gain.value = 2.0; // Усиление громкости
+    gainNode.gain.value = 2.0;
     gainNode.connect(audioCtx.destination);
 
     function beepOsc() {
@@ -336,7 +360,12 @@
     } catch (e) {
       console.warn('Не удалось сохранить историю в localStorage:', e);
     }
-    hist.innerHTML = historyArr.map(h => '<div class="history-item">' + h + '</div>').join('');
+    hist.innerHTML = historyArr.map(h => 
+      `<div class="history-item">${h}<button class="copy-btn" title="Копировать"><i class="fas fa-copy"></i></button></div>`
+    ).join('');
+    document.querySelectorAll('.copy-btn').forEach(btn => 
+      btn.addEventListener('click', () => navigator.clipboard.writeText(btn.parentElement.textContent.replace('Копировать', '').trim()))
+    );
   }
 
   function updatePlaceholders() {
@@ -436,7 +465,11 @@
     }
     hist.innerHTML = '';
   });
-  modeEl.addEventListener('change', updatePlaceholders);
+  modeEl.addEventListener('change', () => {
+    updatePlaceholders();
+    localStorage.setItem('calcMode', modeEl.value);
+  });
+  modeEl.value = localStorage.getItem('calcMode') || 'numberFromPercent';
   updatePlaceholders();
 
   [xEl, yEl, sEl, document.getElementById('minInput'), document.getElementById('secInput')].forEach(el => {
@@ -493,6 +526,8 @@
       clearInterval(timerInterval);
       display.textContent = '00:00';
       display.classList.add('ending');
+      display.classList.add('blink');
+      setTimeout(() => display.classList.remove('blink'), 1500);
       if (audioCtx) {
         try {
           beepOsc();
@@ -563,11 +598,26 @@
     initialTotal = 0;
     isPaused = false;
     display.textContent = '00:00';
-    display.classList.remove('ending');
+    display.classList.remove('ending', 'blink');
     timerBtn.querySelector('span').textContent = 'Start Timer';
     minInput.value = '';
     secInput.value = '';
     progressBar.style.setProperty('--progress', '0%');
+  });
+
+  document.querySelectorAll('.preset-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      minInput.value = btn.dataset.min;
+      secInput.value = '0';
+      total = parseInt(btn.dataset.min) * 60;
+      initialTotal = total;
+      display.classList.remove('ending', 'blink');
+      timerBtn.querySelector('span').textContent = 'Pause Timer';
+      if (timerInterval) clearInterval(timerInterval);
+      timerInterval = setInterval(updateTimer, 1000);
+      progressBar.style.setProperty('--progress', '100%');
+      requestNotificationPermission();
+    });
   });
 </script>
 
