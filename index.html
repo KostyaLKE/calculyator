@@ -1,625 +1,129 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Калькулятор + Таймер</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <meta charset="UTF-8" />
+  <title>Таймер Pomodoro</title>
   <style>
-    * { 
-      box-sizing: border-box; 
-      margin: 0; 
-      padding: 0; 
-    }
-    body { 
-      display: flex; 
-      height: 100vh; 
-      justify-content: center; 
+    body {
+      font-family: sans-serif;
+      display: flex;
+      flex-direction: column;
       align-items: center;
-      background: #F2F2F7; 
-      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif; 
-      transition: background 0.3s;
-    }
-    body.dark { background: #1C2526; }
-    .calculator { 
-      background: rgba(255, 255, 255, 0.9); 
-      backdrop-filter: blur(10px);
-      border-radius: 12px; 
-      box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
-      padding: 16px; 
-      width: 320px; 
-      text-align: center; 
-      transition: background 0.3s;
-    }
-    .calculator.dark { 
-      background: rgba(28, 37, 38, 0.9); 
-      color: #FFF; 
-    }
-    input, select { 
-      padding: 10px; 
-      margin: 6px 0; 
-      border: 1px solid rgba(0, 0, 0, 0.1);
-      border-radius: 10px; 
-      font-size: 14px; 
-      background: rgba(255, 255, 255, 0.7);
-      transition: border-color 0.3s, box-shadow 0.2s;
-    }
-    input:focus, select:focus {
-      outline: none;
-      box-shadow: 0 0 0 2px #007AFF40;
-    }
-    .calculator.dark input, .calculator.dark select { 
-      background: rgba(255, 255, 255, 0.1); 
-      color: #FFF; 
-      border-color: rgba(255, 255, 255, 0.2); 
-    }
-    input.invalid { border-color: #FF3B30; }
-    .input-group {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: space-between;
-      row-gap: 4px;
-      column-gap: 6px;
-    }
-    .input-group #xInput {
-      width: calc(33.33% - 4px);
-      order: 1;
-    }
-    .input-group #yInput {
-      width: calc(66.66% - 4px);
-      order: 2;
-    }
-    .calc-group {
-      display: flex;
-      justify-content: space-between;
-      gap: 6px;
-    }
-    .calc-group #sInput {
-      width: calc(33.33% - 4px);
-    }
-    .calc-group #calcBtn {
-      width: calc(66.66% - 4px);
-      background: #007AFF;
-      font-weight: 600;
-    }
-    .calc-group #calcBtn:hover {
-      background: #005BB5;
-    }
-    button { 
-      padding: 8px; 
-      margin: 6px 0; 
-      border: none; 
-      color: #FFF; 
-      font-size: 14px;
-      border-radius: 10px; 
-      cursor: pointer; 
-      transition: background 0.3s, transform 0.1s; 
-      display: flex; 
-      align-items: center; 
       justify-content: center;
-      gap: 6px;
+      height: 100vh;
+      margin: 0;
+      background: #fdf6e3;
     }
-    button:hover { transform: translateY(-1px); }
-    button:active { transform: scale(0.98); }
-    #openTiny, #toggleTheme, #clearHistory, .preset-btn { 
-      background: rgba(120, 120, 128, 0.2); 
-      width: calc(33.33% - 8px); 
-      height: 34px; 
-      padding: 6px; 
-      color: #007AFF;
+    #timer {
+      font-size: 5em;
+      margin: 20px;
     }
-    .calculator.dark #openTiny, 
-    .calculator.dark #toggleTheme, 
-    .calculator.dark #clearHistory,
-    .calculator.dark .preset-btn { 
-      background: rgba(255, 255, 255, 0.1); 
-      color: #FFF; 
-    }
-    #openTiny:hover, #toggleTheme:hover, #clearHistory:hover, .preset-btn:hover { 
-      background: rgba(120, 120, 128, 0.3); 
-    }
-    .calculator.dark #openTiny:hover, 
-    .calculator.dark #toggleTheme:hover, 
-    .calculator.dark #clearHistory:hover,
-    .calculator.dark .preset-btn:hover { 
-      background: rgba(255, 255, 255, 0.2); 
-    }
-    #timerBtn, #resetTimerBtn { 
-      background: #007AFF; 
-      width: calc(50% - 8px); 
-      font-weight: 500;
-    }
-    #timerBtn:hover, #resetTimerBtn:hover { 
-      background: #005BB5; 
-    }
-    #resetTimerBtn { background: #FF3B30; } 
-    #resetTimerBtn:hover { background: #D32F2F; }
-    .button-group, .timer-button-group, .preset-button-group { 
-      display: flex; 
-      justify-content: space-between; 
-      flex-wrap: nowrap; 
-      align-items: center;
-      margin-top: 8px;
-    }
-    .result { 
-      margin-top: 8px; 
-      font-size: 15px; 
-      min-height: 20px; 
-      color: #000; 
-      background: rgba(255, 255, 255, 0.7);
-      backdrop-filter: blur(5px);
-      border-radius: 10px;
-      padding: 8px;
-      font-weight: 500;
-    }
-    .calculator.dark .result { 
-      color: #FFF; 
-      background: rgba(255, 255, 255, 0.1); 
-    }
-    .history { 
-      text-align: left; 
-      max-height: 100px; 
-      overflow-y: auto; 
-      margin: 8px 0; 
-      padding: 6px;
-      background: rgba(255, 255, 255, 0.8);
-      backdrop-filter: blur(5px);
-      border: 1px solid rgba(0, 0, 0, 0.1);
-      border-radius: 10px; 
-      font-size: 13px; 
-      opacity: 0.9;
-      color: #000;
-    }
-    .calculator.dark .history { 
-      background: rgba(255, 255, 255, 0.15); 
-      color: #FFF; 
-      border: 1px solid rgba(255, 255, 255, 0.2);
-    }
-    .history-item { 
-      margin-bottom: 4px; 
-      display: flex; 
-      justify-content: space-between; 
-      align-items: center;
-    }
-    .history-item button { 
-      background: transparent; 
-      color: #007AFF; 
-      padding: 2px; 
-      margin: 0; 
-      font-size: 12px; 
-    }
-    .timer-block { 
-      display: flex; 
-      justify-content: space-between; 
-      margin-top: 8px; 
-    }
-    .timer-block input { width: calc(50% - 4px); }
-    .timer-display { 
-      margin-top: 8px; 
-      font-size: 20px; 
-      color: #34C759; 
-      font-weight: 600; 
-    }
-    .timer-display.ending { color: #FF3B30; }
-    .timer-display.blink {
-      animation: blink 0.5s 3;
-    }
-    @keyframes blink {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.3; }
-    }
-    .progress-bar {
-      height: 6px;
-      background: rgba(0, 0, 0, 0.1);
-      border-radius: 3px;
-      margin-top: 8px;
-      overflow: hidden;
-    }
-    .calculator.dark .progress-bar { background: rgba(255, 255, 255, 0.2); }
-    .progress-bar::before {
-      content: '';
-      display: block;
-      height: 100%;
-      background: #007AFF;
-      width: var(--progress, 0);
-      transition: width 0.5s ease-out;
-    }
-    [title]:hover:after {
-      content: attr(title);
-      position: absolute;
-      background: rgba(0, 0, 0, 0.8);
-      color: #FFF;
-      padding: 4px 8px;
-      border-radius: 6px;
-      font-size: 12px;
-      z-index: 10;
-    }
-    @media (max-width: 400px) {
-      .calculator { width: 90%; padding: 12px; }
-      input, select, button { font-size: 13px; }
-      .input-group #xInput, .calc-group #sInput { width: calc(33.33% - 3px); }
-      .input-group #yInput, .calc-group #calcBtn { width: calc(66.66% - 3px); }
-      #openTiny, #toggleTheme, #clearHistory, .preset-btn { 
-        width: calc(33.33% - 6px); 
-        height: 32px; 
-        padding: 5px; 
-      }
-      #timerBtn, #resetTimerBtn { width: calc(50% - 6px); }
+    .controls button {
+      font-size: 1em;
+      padding: 10px 20px;
+      margin: 5px;
     }
   </style>
 </head>
 <body>
-
-<div class="calculator">
-  <select id="mode" title="Выберите режим расчета">
-    <option value="percentOfNumber">X% от числа Y?</option>
-    <option value="numberIsPercent">X — сколько % от Y?</option>
-    <option value="numberFromPercent" selected>X% от какого числа Y?</option>
-    <option value="increaseByPercent">Увеличить Y на X%</option>
-  </select>
-  <div class="input-group">
-    <input type="number" id="xInput" placeholder="% (X)" title="Введите процентное значение (X)" />
-    <input type="text" id="yInput" placeholder="Результат (Y)" title="Введите число или сумму (например, 100+150+230)" />
+  <h1>Pomodoro Таймер</h1>
+  <div id="timer">25:00</div>
+  <div class="controls">
+    <button onclick="startTimer()">Старт</button>
+    <button onclick="pauseTimer()">Пауза</button>
+    <button onclick="resetTimer()">Сброс</button>
   </div>
-  <div class="calc-group">
-    <input type="number" id="sInput" placeholder="Суммировать (S)" title="Введите число для суммирования с результатом (S)" />
-    <button id="calcBtn"><i class="fas fa-calculator"></i> <span>Рассчитать</span></button>
-  </div>
-  <div class="result" id="result"></div>
-  <div class="history" id="history"></div>
-  <div class="button-group">
-    <button id="clearHistory" title="Очистить историю"><i class="fas fa-trash-can"></i></button>
-    <button id="openTiny" title="Открыть компактное окно"><i class="fas fa-window-restore"></i></button>
-    <button id="toggleTheme" title="Переключить тему"><i class="fas fa-moon"></i></button>
-  </div>
-  <div class="timer-block">
-    <input type="number" id="minInput" placeholder="Мин" title="Введите минуты" />
-    <input type="number" id="secInput" placeholder="Сек" title="Введите секунды" />
-  </div>
-  <div class="preset-button-group">
-    <button class="preset-btn" data-min="1">1 мин</button>
-    <button class="preset-btn" data-min="5">5 мин</button>
-    <button class="preset-btn" data-min="10">10 мин</button>
-  </div>
-  <div class="timer-button-group">
-    <button id="timerBtn"><i class="fas fa-clock"></i> <span>Start Timer</span></button>
-    <button id="resetTimerBtn"><i class="fas fa-rotate-left"></i> <span>Reset Timer</span></button>
-  </div>
-  <div class="timer-display" id="timerDisplay">00:00</div>
-  <div class="progress-bar" id="progressBar"></div>
-  <audio id="beep" preload="auto">
-    <source src="https://www.soundjay.com/buttons/beep-01a.mp3" type="audio/mpeg">
-    <source src="https://www.soundjay.com/buttons/beep-01a.ogg" type="audio/ogg">
-  </audio>
-</div>
 
-<script>
-  // ————— Уведомления —————
-  async function requestNotificationPermission() {
-    if (!('Notification' in window)) return false;
-    if (Notification.permission === 'granted') return true;
-    if (Notification.permission !== 'denied') {
-      const res = await Notification.requestPermission();
-      return res === 'granted';
+  <script>
+    let timer;
+    let duration = 25 * 60;
+    let remaining = duration;
+    let isRunning = false;
+
+    const timerDisplay = document.getElementById("timer");
+
+    function updateDisplay() {
+      const minutes = Math.floor(remaining / 60)
+        .toString()
+        .padStart(2, "0");
+      const seconds = (remaining % 60).toString().padStart(2, "0");
+      timerDisplay.textContent = `${minutes}:${seconds}`;
     }
-    return false;
-  }
 
-  function sendNotification(title, body) {
-    if (Notification.permission !== 'granted' || document.hasFocus()) return;
-    const notification = new Notification(title, { body, silent: true });
-    notification.onclick = () => {
-      window.focus();
-      notification.close();
-    };
-  }
-
-  // ————— Web Audio API —————
-  let audioCtx;
-  try {
-    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    const gainNode = audioCtx.createGain();
-    gainNode.gain.value = 2.0;
-    gainNode.connect(audioCtx.destination);
-
-    function beepOsc() {
-      const osc = audioCtx.createOscillator();
-      osc.type = 'sine';
-      osc.frequency.value = 440;
-      osc.connect(gainNode);
-      osc.start();
-      osc.stop(audioCtx.currentTime + 0.5);
-    }
-  } catch (e) {
-    console.warn('Web Audio API недоступен:', e);
-  }
-
-  // ————— Калькулятор + История —————
-  const modeEl = document.getElementById('mode'),
-        xEl = document.getElementById('xInput'),
-        yEl = document.getElementById('yInput'),
-        sEl = document.getElementById('sInput'),
-        btn = document.getElementById('calcBtn'),
-        res = document.getElementById('result'),
-        hist = document.getElementById('history'),
-        clearBtn = document.getElementById('clearHistory'),
-        openTiny = document.getElementById('openTiny'),
-        toggleTheme = document.getElementById('toggleTheme');
-
-  let historyArr = [];
-  try {
-    historyArr = JSON.parse(localStorage.getItem('calcHistory')) || [];
-  } catch (e) {
-    console.warn('Ошибка доступа к localStorage:', e);
-  }
-
-  function addHistory(item) {
-    historyArr.unshift(item);
-    try {
-      localStorage.setItem('calcHistory', JSON.stringify(historyArr));
-    } catch (e) {
-      console.warn('Не удалось сохранить историю в localStorage:', e);
-    }
-    hist.innerHTML = historyArr.map(h => 
-      `<div class="history-item">${h}<button class="copy-btn" title="Копировать"><i class="fas fa-copy"></i></button></div>`
-    ).join('');
-    document.querySelectorAll('.copy-btn').forEach(btn => 
-      btn.addEventListener('click', () => navigator.clipboard.writeText(btn.parentElement.textContent.replace('Копировать', '').trim()))
-    );
-  }
-
-  function updatePlaceholders() {
-    if (modeEl.value === 'percentOfNumber') {
-      xEl.placeholder = '% (X)';
-      yEl.placeholder = 'Результат (Y)';
-      sEl.style.display = 'none';
-    } else if (modeEl.value === 'numberIsPercent') {
-      xEl.placeholder = 'Число (X)';
-      yEl.placeholder = 'Число (Y)';
-      sEl.style.display = 'none';
-    } else if (modeEl.value === 'increaseByPercent') {
-      xEl.placeholder = '% (X)';
-      yEl.placeholder = 'Число (Y)';
-      sEl.style.display = 'none';
-    } else {
-      xEl.placeholder = '% (X)';
-      yEl.placeholder = 'Результат (Y)';
-      sEl.style.display = 'block';
-    }
-    res.textContent = '';
-    xEl.focus();
-  }
-
-  function parseYInput(input) {
-    if (!input.includes('+')) {
-      return parseFloat(input);
-    }
-    const numbers = input.split('+').map(num => parseFloat(num.trim()));
-    if (numbers.some(isNaN)) {
-      return NaN;
-    }
-    return numbers.reduce((sum, num) => sum + num, 0);
-  }
-
-  function calcPercentOfNumber(x, y) {
-    return `${x}% от ${y} = ${(x / 100 * y).toFixed(2)}`;
-  }
-
-  function calcNumberIsPercent(x, y) {
-    return `${x} = ${(x / y * 100).toFixed(2)}% от ${y}`;
-  }
-
-  function calcNumberFromPercent(x, y, s) {
-    const base = y / (x / 100);
-    let result = `${x}% от ${base.toFixed(2)} = ${y}`;
-    if (!isNaN(s) && s !== '') {
-      const sum = base + parseFloat(s);
-      result += `, сумма с S: ${sum.toFixed(2)}`;
-    }
-    return result;
-  }
-
-  function calcIncreaseByPercent(x, y) {
-    return `${y} + ${x}% = ${((y * (100 + x)) / 100).toFixed(2)}`;
-  }
-
-  function calculate() {
-    const x = parseFloat(xEl.value);
-    const yRaw = yEl.value.trim();
-    const y = parseYInput(yRaw);
-    const s = sEl.value.trim();
-
-    if (isNaN(x) || isNaN(y)) {
-      res.textContent = 'Введите корректные значения для X и Y';
-      return;
-    }
-    if (modeEl.value === 'numberFromPercent' && x === 0) {
-      res.textContent = 'Процент не может быть равен 0';
-      return;
-    }
-    if (modeEl.value === 'numberIsPercent' && y === 0) {
-      res.textContent = 'Деление на ноль невозможно';
-      return;
-    }
-    let text = '';
-    switch (modeEl.value) {
-      case 'percentOfNumber': text = calcPercentOfNumber(x, y); break;
-      case 'numberIsPercent': text = calcNumberIsPercent(x, y); break;
-      case 'numberFromPercent': text = calcNumberFromPercent(x, y, s); break;
-      case 'increaseByPercent': text = calcIncreaseByPercent(x, y); break;
-    }
-    res.textContent = text;
-    addHistory(text);
-  }
-
-  btn.addEventListener('click', calculate);
-  [xEl, yEl, sEl].forEach(el => 
-    el.addEventListener('keypress', ev => ev.key === 'Enter' && calculate())
-  );
-  clearBtn.addEventListener('click', () => {
-    historyArr = [];
-    try {
-      localStorage.setItem('calcHistory', JSON.stringify(historyArr));
-    } catch (e) {
-      console.warn('Не удалось очистить localStorage:', e);
-    }
-    hist.innerHTML = '';
-  });
-  modeEl.addEventListener('change', () => {
-    updatePlaceholders();
-    localStorage.setItem('calcMode', modeEl.value);
-  });
-  modeEl.value = localStorage.getItem('calcMode') || 'numberFromPercent';
-  updatePlaceholders();
-
-  [xEl, yEl, sEl, document.getElementById('minInput'), document.getElementById('secInput')].forEach(el => {
-    el.addEventListener('input', () => {
-      if (el.value < 0 && (el.id === 'minInput' || el.id === 'secInput' || el.id === 'sInput')) {
-        el.classList.add('invalid');
-        res.textContent = 'Отрицательные значения недопустимы';
+    function tick() {
+      if (remaining > 0) {
+        remaining--;
+        updateDisplay();
       } else {
-        el.classList.remove('invalid');
-        res.textContent = '';
+        clearInterval(timer);
+        isRunning = false;
+        notifyUser();
+        playSound();
       }
-    });
-  });
-
-  document.addEventListener('keydown', ev => {
-    if (ev.key === 'Escape') {
-      xEl.value = '';
-      yEl.value = '';
-      sEl.value = '';
-      document.getElementById('minInput').value = '';
-      document.getElementById('secInput').value = '';
-      res.textContent = '';
     }
-  });
 
-  // ————— Компактное окно —————
-  if (window.name === 'tinyCalc') openTiny.style.display = 'none';
+    function startTimer() {
+      if (!isRunning) {
+        timer = setInterval(tick, 1000);
+        isRunning = true;
+      }
+    }
 
-  openTiny.addEventListener('click', () => {
-    window.open(window.location.href, 'tinyCalc', 'width=350,height=600,left=100,top=100');
-    openTiny.style.display = 'none';
-  });
+    function pauseTimer() {
+      clearInterval(timer);
+      isRunning = false;
+    }
 
-  // ————— Темная тема —————
-  toggleTheme.addEventListener('click', () => {
-    document.body.classList.toggle('dark');
-    document.querySelector('.calculator').classList.toggle('dark');
-    document.querySelector('.history').classList.toggle('dark');
-  });
+    function resetTimer() {
+      clearInterval(timer);
+      remaining = duration;
+      updateDisplay();
+      isRunning = false;
+    }
 
-  // ————— Таймер —————
-  let timerInterval = null, total = 0, initialTotal = 0, isPaused = false;
-  const display = document.getElementById('timerDisplay'),
-        timerBtn = document.getElementById('timerBtn'),
-        resetTimerBtn = document.getElementById('resetTimerBtn'),
-        progressBar = document.getElementById('progressBar'),
-        minInput = document.getElementById('minInput'),
-        secInput = document.getElementById('secInput'),
-        beepAudio = document.getElementById('beep');
+    function playSound() {
+      const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      const oscillator = audioCtx.createOscillator();
+      const gainNode = audioCtx.createGain();
 
-  function updateTimer() {
-    total--;
-    if (total < 0) {
-      clearInterval(timerInterval);
-      display.textContent = '00:00';
-      display.classList.add('ending');
-      display.classList.add('blink');
-      setTimeout(() => display.classList.remove('blink'), 1500);
-      if (audioCtx) {
-        try {
-          beepOsc();
-        } catch (e) {
-          console.warn('Ошибка воспроизведения Web Audio:', e);
-          try {
-            beepAudio.play();
-          } catch (e) {
-            console.warn('Ошибка воспроизведения запасного звука:', e);
+      oscillator.type = 'sine';
+      oscillator.frequency.setValueAtTime(1000, audioCtx.currentTime);
+      gainNode.gain.setValueAtTime(1.5, audioCtx.currentTime); // усиление звука
+
+      oscillator.connect(gainNode);
+      gainNode.connect(audioCtx.destination);
+
+      oscillator.start();
+      oscillator.stop(audioCtx.currentTime + 1.5); // 1.5 секунды
+    }
+
+    function notifyUser() {
+      if (Notification.permission === "granted") {
+        const notification = new Notification("⏰ Время вышло!", {
+          body: "Таймер завершён. Возвращайтесь к работе!",
+          icon: "https://cdn-icons-png.flaticon.com/512/561/561127.png"
+        });
+
+        notification.onclick = () => {
+          window.focus();
+        };
+      } else if (Notification.permission !== "denied") {
+        Notification.requestPermission().then(permission => {
+          if (permission === "granted") {
+            notifyUser();
           }
-        }
-      } else {
-        try {
-          beepAudio.play();
-        } catch (e) {
-          console.warn('Ошибка воспроизведения запасного звука:', e);
-        }
+        });
       }
-      sendNotification('Таймер завершён', 'Время вышло!');
-      timerBtn.querySelector('span').textContent = 'Start Timer';
-      timerInterval = null;
-      isPaused = false;
-      progressBar.style.setProperty('--progress', '0%');
-    } else {
-      const m = Math.floor(total / 60), s = total % 60;
-      display.textContent = `${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
-      progressBar.style.setProperty('--progress', `${(total / initialTotal) * 100}%`);
-      if (total < 10) display.classList.add('ending');
     }
-  }
 
-  timerBtn.addEventListener('click', async () => {
-    if (!timerInterval && total <= 0) {
-      await requestNotificationPermission();
-    }
-    if (timerInterval && !isPaused) {
-      clearInterval(timerInterval);
-      timerBtn.querySelector('span').textContent = 'Resume Timer';
-      isPaused = true;
-      return;
-    }
-    if (isPaused) {
-      if (total <= 0) {
-        alert('Установите время.');
-        return;
+    // Показать уведомление при завершении, если окно скрыто
+    document.addEventListener("visibilitychange", () => {
+      if (document.hidden && !isRunning && remaining === 0) {
+        notifyUser();
       }
-      timerInterval = setInterval(updateTimer, 1000);
-      timerBtn.querySelector('span').textContent = 'Pause Timer';
-      isPaused = false;
-      progressBar.style.setProperty('--progress', `${(total / initialTotal) * 100}%`);
-      return;
-    }
-    const mins = parseInt(minInput.value) || 0;
-    const secs = parseInt(secInput.value) || 0;
-    total = mins * 60 + secs;
-    if (total <= 0) return alert('Установите время.');
-    initialTotal = total;
-    display.classList.remove('ending');
-    timerBtn.querySelector('span').textContent = 'Pause Timer';
-    timerInterval = setInterval(updateTimer, 1000);
-    progressBar.style.setProperty('--progress', '100%');
-  });
-
-  resetTimerBtn.addEventListener('click', () => {
-    clearInterval(timerInterval);
-    timerInterval = null;
-    total = 0;
-    initialTotal = 0;
-    isPaused = false;
-    display.textContent = '00:00';
-    display.classList.remove('ending', 'blink');
-    timerBtn.querySelector('span').textContent = 'Start Timer';
-    minInput.value = '';
-    secInput.value = '';
-    progressBar.style.setProperty('--progress', '0%');
-  });
-
-  document.querySelectorAll('.preset-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      minInput.value = btn.dataset.min;
-      secInput.value = '0';
-      total = parseInt(btn.dataset.min) * 60;
-      initialTotal = total;
-      display.classList.remove('ending', 'blink');
-      timerBtn.querySelector('span').textContent = 'Pause Timer';
-      if (timerInterval) clearInterval(timerInterval);
-      timerInterval = setInterval(updateTimer, 1000);
-      progressBar.style.setProperty('--progress', '100%');
-      requestNotificationPermission();
     });
-  });
-</script>
 
+    updateDisplay();
+  </script>
 </body>
 </html>
