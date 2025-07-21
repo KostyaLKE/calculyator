@@ -106,9 +106,8 @@
       gap: 6px;
     }
     button:active { transform: scale(0.98); }
-    #openTiny, #toggleTheme, #clearHistory, #saveResult, #toggleHistory { 
+    #openTiny, #toggleTheme, #clearHistory, #toggleHistory { 
       background: rgba(120, 120, 128, 0.2); 
-      width: calc(25% - 8px); 
       height: 34px; 
       padding: 6px; 
       color: #007AFF;
@@ -116,18 +115,16 @@
     .calculator.dark #openTiny, 
     .calculator.dark #toggleTheme, 
     .calculator.dark #clearHistory,
-    .calculator.dark #saveResult,
     .calculator.dark #toggleHistory { 
       background: rgba(255, 255, 255, 0.1); 
       color: #FFF; 
     }
-    #openTiny:hover, #toggleTheme:hover, #clearHistory:hover, #saveResult:hover, #toggleHistory:hover { 
+    #openTiny:hover, #toggleTheme:hover, #clearHistory:hover, #toggleHistory:hover { 
       background: rgba(120, 120, 128, 0.3); 
     }
     .calculator.dark #openTiny:hover, 
     .calculator.dark #toggleTheme:hover, 
     .calculator.dark #clearHistory:hover,
-    .calculator.dark #saveResult:hover,
     .calculator.dark #toggleHistory:hover { 
       background: rgba(255, 255, 255, 0.2); 
     }
@@ -156,11 +153,14 @@
     #resetTimerBtn:hover { background: #D32F2F; }
     .button-group { 
       display: flex; 
-      justify-content: space-between; 
+      justify-content: flex-end; 
       flex-wrap: nowrap; 
       align-items: center;
       margin-top: 8px;
       gap: 6px;
+    }
+    .button-group button {
+      width: 70px; /* Фиксированная ширина для одинакового размера */
     }
     .timer-button-group { 
       display: flex; 
@@ -323,7 +323,7 @@
       .input-group #yInput { width: 70%; }
       .calc-group #sInput { width: 30%; }
       .calc-group #calcBtn { width: 70%; }
-      #openTiny, #toggleTheme, #clearHistory, #saveResult, #toggleHistory { 
+      #openTiny, #toggleTheme, #clearHistory, #toggleHistory { 
         width: calc(25% - 6px); 
         height: 32px; 
         padding: 5px; 
@@ -364,7 +364,6 @@
   <div class="history" id="history"></div>
   <div class="button-group">
     <button id="clearHistory" title="Очистить историю"><i class="fas fa-trash-can"></i></button>
-    <button id="saveResult" title="Сохранить результат"><i class="fas fa-save"></i></button>
     <button id="toggleHistory" title="Свернуть историю"><i class="fas fa-eye-slash"></i></button>
     <button id="toggleTheme" title="Переключить тему"><i class="fas fa-moon"></i></button>
   </div>
@@ -480,7 +479,6 @@
         res = document.getElementById('result'),
         hist = document.getElementById('history'),
         clearBtn = document.getElementById('clearHistory'),
-        saveResultBtn = document.getElementById('saveResult'),
         toggleHistoryBtn = document.getElementById('toggleHistory'),
         openTiny = document.getElementById('openTiny'),
         toggleTheme = document.getElementById('toggleTheme');
@@ -599,14 +597,6 @@
       console.warn('Не удалось очистить localStorage:', e);
     }
     hist.innerHTML = '';
-  });
-  saveResultBtn.addEventListener('click', () => {
-    const resultText = res.textContent;
-    if (resultText && !resultText.includes('Введите корректные значения') && !resultText.includes('Процент не может быть равен 0') && !resultText.includes('Деление на ноль невозможно')) {
-      addHistory(resultText);
-    } else {
-      alert('Нет результата для сохранения');
-    }
   });
   modeEl.addEventListener('change', updatePlaceholders);
   updatePlaceholders();
