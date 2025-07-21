@@ -339,12 +339,21 @@
       }
     }
     /* Новый стиль для кнопки toggleRound */
+    #toggleRound {
+      background: rgba(142, 142, 147, 0.2); /* Серый цвет #8E8E93 */
+    }
     #toggleRound i {
-      color: #007AFF; /* Обычный цвет при включенном округлении */
+      color: #8E8E93; /* Серый цвет для иконки */
       transition: color 0.3s;
     }
     #toggleRound.off i {
-      color: #FF3B30; /* Красный цвет при выключенном округлении */
+      color: #8E8E93; /* Серый цвет остается постоянным */
+    }
+    .calculator.dark #toggleRound {
+      background: rgba(255, 255, 255, 0.1);
+    }
+    .calculator.dark #toggleRound i {
+      color: #8E8E93; /* Серый цвет в темной теме */
     }
   </style>
 </head>
@@ -372,7 +381,7 @@
   <div class="history" id="history"></div>
   <div class="button-group">
     <button id="clearHistory" title="Очистить историю"><i class="fas fa-trash-can"></i></button>
-    <button id="toggleRound" title="Переключить округление"><i class="fas fa-arrows-rotate"></i></button>
+    <button id="toggleRound" title="Переключить округление"><i class="fas fa-sync-alt"></i></button>
     <button id="toggleHistory" title="Свернуть историю"><i class="fas fa-eye-slash"></i></button>
     <button id="toggleTheme" title="Переключить тему"><i class="fas fa-moon"></i></button>
   </div>
@@ -498,7 +507,7 @@
   try {
     historyArr = JSON.parse(localStorage.getItem('calcHistory')) || [];
     isRounding = localStorage.getItem('isRounding') !== 'false'; // Загружаем состояние округления
-    toggleRoundBtn.textContent = isRounding ? ' ' : 'Не округлять'; // Устанавливаем текст
+    toggleRoundBtn.textContent = ' '; // Устанавливаем только пробел для выравнивания
     toggleRoundBtn.classList.toggle('off', !isRounding); // Добавляем/удаляем класс для цвета
   } catch (e) {
     console.warn('Ошибка доступа к localStorage:', e);
@@ -614,7 +623,7 @@
   });
   toggleRoundBtn.addEventListener('click', () => {
     isRounding = !isRounding;
-    toggleRoundBtn.textContent = isRounding ? ' ' : 'Не округлять';
+    toggleRoundBtn.textContent = ' '; // Устанавливаем только пробел для выравнивания
     toggleRoundBtn.classList.toggle('off', !isRounding); // Переключаем класс для цвета
     try {
       localStorage.setItem('isRounding', isRounding);
