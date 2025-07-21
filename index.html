@@ -65,18 +65,15 @@
     input.invalid { border-color: #FF3B30; }
     .input-group {
       display: flex;
-      flex-wrap: wrap;
+      flex-wrap: nowrap;
       justify-content: space-between;
-      row-gap: 4px;
-      column-gap: 6px;
+      gap: 6px;
     }
     .input-group #xInput {
-      width: calc(33.33% - 4px);
-      order: 1;
+      width: 33.33%;
     }
     .input-group #yInput {
-      width: calc(66.66% - 4px);
-      order: 2;
+      width: 66.66%;
     }
     .calc-group {
       display: flex;
@@ -84,10 +81,10 @@
       gap: 6px;
     }
     .calc-group #sInput {
-      width: calc(33.33% - 4px);
+      width: 33.33%;
     }
     .calc-group #calcBtn {
-      width: calc(66.66% - 4px);
+      width: 66.66%;
       background: #007AFF;
       font-weight: 600;
     }
@@ -279,8 +276,9 @@
       display: flex; 
       justify-content: space-between; 
       margin-top: 8px; 
+      gap: 10px;
     }
-    .timer-block input { width: calc(50% - 4px); }
+    .timer-block input { width: 48%; }
     .timer-display { 
       margin-top: 8px; 
       font-size: 20px; 
@@ -321,8 +319,10 @@
         max-height: calc(100vh - 150px); 
       }
       input, select, button { font-size: 13px; }
-      .input-group #xInput, .calc-group #sInput { width: calc(33.33% - 3px); }
-      .input-group #yInput, .calc-group #calcBtn { width: calc(66.66% - 3px); }
+      .input-group #xInput { width: 33.33%; }
+      .input-group #yInput { width: 66.66%; }
+      .calc-group #sInput { width: 33.33%; }
+      .calc-group #calcBtn { width: 66.66%; }
       #openTiny, #toggleTheme, #clearHistory, #saveResult, #toggleHistory { 
         width: calc(25% - 6px); 
         height: 32px; 
@@ -354,7 +354,7 @@
   </div>
   <div class="input-group">
     <input type="number" id="xInput" inputmode="numeric" placeholder="% (X)" title="Введите процентное значение (X)" />
-    <input type="text" id="yInput" inputmode="decimal" placeholder="Результат (Y)" title="Введите число или сумму (например, 100+150+230)" />
+    <input type="text" id="yInput" pattern="[0-9+\s]*" placeholder="Результат (Y)" title="Введите число или сумму (например, 100+150+230)" />
   </div>
   <div class="calc-group">
     <input type="number" id="sInput" inputmode="numeric" placeholder="(S)" title="Введите число для суммирования с результатом (S)" />
