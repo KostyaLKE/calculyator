@@ -106,7 +106,7 @@
       gap: 6px;
     }
     button:active { transform: scale(0.98); }
-    #openTiny, #toggleTheme, #clearHistory, #saveResult, #toggleHistory { 
+    #openTiny, #toggleTheme, #clearHistory, #toggleRound, #toggleHistory { 
       background: rgba(120, 120, 128, 0.2); 
       width: calc(25% - 8px); 
       height: 34px; 
@@ -116,18 +116,18 @@
     .calculator.dark #openTiny, 
     .calculator.dark #toggleTheme, 
     .calculator.dark #clearHistory,
-    .calculator.dark #saveResult,
+    .calculator.dark #toggleRound,
     .calculator.dark #toggleHistory { 
       background: rgba(255, 255, 255, 0.1); 
       color: #FFF; 
     }
-    #openTiny:hover, #toggleTheme:hover, #clearHistory:hover, #saveResult:hover, #toggleHistory:hover { 
+    #openTiny:hover, #toggleTheme:hover, #clearHistory:hover, #toggleRound:hover, #toggleHistory:hover { 
       background: rgba(120, 120, 128, 0.3); 
     }
     .calculator.dark #openTiny:hover, 
     .calculator.dark #toggleTheme:hover, 
     .calculator.dark #clearHistory:hover,
-    .calculator.dark #saveResult:hover,
+    .calculator.dark #toggleRound:hover,
     .calculator.dark #toggleHistory:hover { 
       background: rgba(255, 255, 255, 0.2); 
     }
@@ -323,7 +323,7 @@
       .input-group #yInput { width: 70%; }
       .calc-group #sInput { width: 30%; }
       .calc-group #calcBtn { width: 70%; }
-      #openTiny, #toggleTheme, #clearHistory, #saveResult, #toggleHistory { 
+      #openTiny, #toggleTheme, #clearHistory, #toggleRound, #toggleHistory { 
         width: calc(25% - 6px); 
         height: 32px; 
         padding: 5px; 
@@ -337,6 +337,14 @@
         width: calc(33.33% - 4px);
         font-size: 12px;
       }
+    }
+    /* Новый стиль для кнопки toggleRound */
+    #toggleRound i {
+      color: #007AFF; /* Обычный цвет при включенном округлении */
+      transition: color 0.3s;
+    }
+    #toggleRound.off i {
+      color: #FF3B30; /* Красный цвет при выключенном округлении */
     }
   </style>
 </head>
@@ -364,7 +372,7 @@
   <div class="history" id="history"></div>
   <div class="button-group">
     <button id="clearHistory" title="Очистить историю"><i class="fas fa-trash-can"></i></button>
-    <button id="saveResult" title="Сохранить результат"><i class="fas fa-save"></i></button>
+    <button id="toggleRound" title="Переключить округление"><i class="fas fa-arrows-rotate"></i></button>
     <button id="toggleHistory" title="Свернуть историю"><i class="fas fa-eye-slash"></i></button>
     <button id="toggleTheme" title="Переключить тему"><i class="fas fa-moon"></i></button>
   </div>
@@ -480,14 +488,18 @@
         res = document.getElementById('result'),
         hist = document.getElementById('history'),
         clearBtn = document.getElementById('clearHistory'),
-        saveResultBtn = document.getElementById('saveResult'),
+        toggleRoundBtn = document.getElementById('toggleRound'),
         toggleHistoryBtn = document.getElementById('toggleHistory'),
         openTiny = document.getElementById('openTiny'),
         toggleTheme = document.getElementById('toggleTheme');
 
   let historyArr = [];
+  let isRounding = true; // По умолчанию включаем округление
   try {
     historyArr = JSON.parse(localStorage.getItem('calcHistory')) || [];
+    isRounding = localStorage.getItem('isRounding') !== 'false'; // Загружаем состояние округления
+    toggleRoundBtn.textContent = isRounding ? ' ' : 'Не округлять'; // Устанавливаем текст
+    toggleRoundBtn.classList.toggle('off', !isRounding); // Добавляем/удаляем класс для цвета
   } catch (e) {
     console.warn('Ошибка доступа к localStorage:', e);
   }
@@ -546,10 +558,10 @@
 
   function calcNumberFromPercent(x, y, s) {
     const base = y / (x / 100);
-    let result = `${x}% от ${base.toFixed(2)} = ${y}`;
+    let result = `${x}% от ${isRounding ? Math.ceil(base) : base.toFixed(2)} = ${y}`;
     if (!isNaN(s) && s !== '') {
       const sum = base + parseFloat(s);
-      result += `<div class="sum-result">Сумма с S: ${sum.toFixed(2)}<button class="copy-btn" aria-label="Скопировать сумму" onclick="copyToClipboard('${sum.toFixed(2)}')"><i class="fas fa-copy"></i></button></div>`;
+      result += `<div class="sum-result">Сумма с S: ${isRounding ? Math.ceil(sum) : sum.toFixed(2)}<button class="copy-btn" aria-label="Скопировать сумму" onclick="copyToClipboard('${isRounding ? Math.ceil(sum) : sum.toFixed(2)}')"><i class="fas fa-copy"></i></button></div>`;
     }
     return result;
   }
@@ -600,13 +612,16 @@
     }
     hist.innerHTML = '';
   });
-  saveResultBtn.addEventListener('click', () => {
-    const resultText = res.textContent;
-    if (resultText && !resultText.includes('Введите корректные значения') && !resultText.includes('Процент не может быть равен 0') && !resultText.includes('Деление на ноль невозможно')) {
-      addHistory(resultText);
-    } else {
-      alert('Нет результата для сохранения');
+  toggleRoundBtn.addEventListener('click', () => {
+    isRounding = !isRounding;
+    toggleRoundBtn.textContent = isRounding ? ' ' : 'Не округлять';
+    toggleRoundBtn.classList.toggle('off', !isRounding); // Переключаем класс для цвета
+    try {
+      localStorage.setItem('isRounding', isRounding);
+    } catch (e) {
+      console.warn('Не удалось сохранить состояние округления в localStorage:', e);
     }
+    calculate(); // Пересчитываем результат с новым состоянием округления
   });
   modeEl.addEventListener('change', updatePlaceholders);
   updatePlaceholders();
