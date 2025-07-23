@@ -372,7 +372,7 @@
   // ————— Регистрация Service Worker —————
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('/sw.js')
+      
         .then(reg => console.log('Service Worker зарегистрирован:', reg))
         .catch(err => console.warn('Ошибка регистрации Service Worker:', err));
     });
@@ -554,7 +554,7 @@
     }
   });
 
-  [xEl, yEl, sEl, document.getElementById('minInput'), document.getElementById('secInput')].forEach(el => {
+  [xEl, yEl, sEl, , ].forEach(el => {
     el.addEventListener('input', () => {
       if (el.value < 0 && (el.id === 'minInput' || el.id === 'secInput' || el.id === 'sInput')) {
         el.classList.add('invalid');
@@ -571,8 +571,8 @@
       xEl.value = '';
       yEl.value = '';
       sEl.value = '';
-      document.getElementById('minInput').value = '';
-      document.getElementById('secInput').value = '';
+      .value = '';
+      .value = '';
       res.textContent = '';
     }
   });
