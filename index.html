@@ -3,13 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <!-- Мета-теги для iOS PWA -->
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
-  <meta name="apple-mobile-web-app-title" content="Калькулятор + Таймер">
-  <!-- Ссылка на манифест -->
+  <meta name="apple-mobile-web-app-title" content="Калькулятор">
   <link rel="manifest" href="/manifest.json">
-  <!-- Иконки для домашнего экрана -->
   <link rel="apple-touch-icon" href="/icons/icon-192x192.png">
   <link rel="apple-touch-icon" sizes="192x192" href="/icons/icon-192x192.png">
   <link rel="apple-touch-icon" sizes="512x512" href="/icons/icon-512x512.png">
@@ -109,6 +106,7 @@
     #openTiny, #toggleTheme, #clearHistory, #toggleHistory { 
       background: rgba(120, 120, 128, 0.2); 
       height: 34px; 
+      width: 34px; 
       padding: 6px; 
       color: #007AFF;
     }
@@ -140,57 +138,6 @@
     .mode-group #openTiny {
       width: 34px;
       height: 34px;
-    }
-    #timerBtn, #resetTimerBtn { 
-      background: #007AFF; 
-      width: calc(50% - 8px); 
-      font-weight: 500;
-    }
-    #timerBtn:hover, #resetTimerBtn:hover { 
-      background: #005BB5; 
-    }
-    #resetTimerBtn { background: #FF3B30; } 
-    #resetTimerBtn:hover { background: #D32F2F; }
-    .button-group { 
-      display: flex; 
-      justify-content: flex-end; 
-      flex-wrap: nowrap; 
-      align-items: center;
-      margin-top: 8px;
-      gap: 6px;
-    }
-    .button-group button {
-      width: 70px; /* Фиксированная ширина для одинакового размера */
-    }
-    .timer-button-group { 
-      display: flex; 
-      justify-content: space-between; 
-      flex-wrap: nowrap; 
-      align-items: center;
-      margin-top: 8px;
-    }
-    .quick-timer-buttons {
-      display: flex;
-      justify-content: space-between;
-      gap: 6px;
-      margin-top: 8px;
-    }
-    .quick-timer-buttons button {
-      background: rgba(120, 120, 128, 0.2);
-      color: #007AFF;
-      width: calc(33.33% - 4px);
-      font-size: 13px;
-      padding: 6px;
-    }
-    .calculator.dark .quick-timer-buttons button {
-      background: rgba(255, 255, 255, 0.1);
-      color: #FFF;
-    }
-    .quick-timer-buttons button:hover {
-      background: rgba(120, 120, 128, 0.3);
-    }
-    .calculator.dark .quick-timer-buttons button:hover {
-      background: rgba(255, 255, 255, 0.2);
     }
     .result { 
       margin-top: 8px; 
@@ -272,35 +219,20 @@
       overflow: hidden;
     }
     .history-item { margin-bottom: 4px; }
-    .timer-block { 
+    .button-group { 
       display: flex; 
-      justify-content: space-between; 
-      margin-top: 8px; 
-      gap: 10px;
-    }
-    .timer-block input { width: 48%; }
-    .timer-display { 
-      margin-top: 8px; 
-      font-size: 20px; 
-      color: #34C759; 
-      font-weight: 600; 
-    }
-    .timer-display.ending { color: #FF3B30; }
-    .progress-bar {
-      height: 6px;
-      background: rgba(0, 0, 0, 0.1);
-      border-radius: 3px;
+      justify-content: flex-end; 
+      align-items: center;
       margin-top: 8px;
-      overflow: hidden;
+      gap: 6px;
     }
-    .calculator.dark .progress-bar { background: rgba(255, 255, 255, 0.2); }
-    .progress-bar::before {
-      content: '';
-      display: block;
-      height: 100%;
-      background: #007AFF;
-      width: var(--progress, 0);
-      transition: width 0.5s ease-out;
+    .button-group button {
+      width: 34px; 
+      height: 34px; 
+      padding: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
     [title]:hover:after {
       content: attr(title);
@@ -323,302 +255,292 @@
       .input-group #yInput { width: 70%; }
       .calc-group #sInput { width: 30%; }
       .calc-group #calcBtn { width: 70%; }
-      #openTiny, #toggleTheme, #clearHistory, #toggleHistory { 
-        width: calc(25% - 6px); 
-        height: 32px; 
-        padding: 5px; 
-      }
       .mode-group #openTiny {
         width: 32px;
         height: 32px;
       }
-      #timerBtn, #resetTimerBtn { width: calc(50% - 6px); }
-      .quick-timer-buttons button {
-        width: calc(33.33% - 4px);
-        font-size: 12px;
+      .button-group button {
+        width: 32px;
+        height: 32px;
+        padding: 5px;
       }
     }
   </style>
 </head>
 <body>
-
-<div class="calculator">
-  <div class="mode-group">
-    <select id="mode" title="Выберите режим расчета">
-      <option value="percentOfNumber">X% от числа Y?</option>
-      <option value="numberIsPercent">X — сколько % от Y?</option>
-      <option value="numberFromPercent" selected>X% от какого числа Y?</option>
-      <option value="increaseByPercent">Увеличить Y на X%</option>
-    </select>
-    <button id="openTiny" title="Открыть компактное окно"><i class="fas fa-window-restore"></i></button>
+  <div class="calculator">
+    <div class="mode-group">
+      <select id="mode" title="Выберите режим расчета">
+        <option value="percentOfNumber">X% от числа Y?</option>
+        <option value="numberIsPercent">X — сколько % от Y?</option>
+        <option value="numberFromPercent" selected>X% от какого числа Y?</option>
+        <option value="increaseByPercent">Увеличить Y на X%</option>
+      </select>
+      <button id="openTiny" title="Открыть компактное окно"><i class="fas fa-window-restore"></i></button>
+    </div>
+    <div class="input-group">
+      <input type="number" id="xInput" inputmode="numeric" placeholder="% (X)" title="Введите процентное значение (X)" />
+      <input type="text" id="yInput" pattern="[0-9+\s]*" placeholder="Результат (Y)" title="Введите число или сумму (например, 100+150+230)" />
+    </div>
+    <div class="calc-group">
+      <input type="number" id="sInput" inputmode="numeric" placeholder="(S)" title="Введите число для суммирования с результатом (S)" />
+      <button id="calcBtn"><i class="fas fa-calculator"></i> <span>Рассчитать</span></button>
+    </div>
+    <div class="result" id="result"></div>
+    <div class="history" id="history"></div>
+    <div class="button-group">
+      <button id="clearHistory" title="Очистить историю"><i class="fas fa-trash-can"></i></button>
+      <button id="toggleHistory" title="Свернуть историю"><i class="fas fa-eye-slash"></i></button>
+      <button id="toggleTheme" title="Переключить тему"><i class="fas fa-moon"></i></button>
+    </div>
   </div>
-  <div class="input-group">
-    <input type="number" id="xInput" inputmode="numeric" placeholder="% (X)" title="Введите процентное значение (X)" />
-    <input type="text" id="yInput" pattern="[0-9+\s]*" placeholder="Результат (Y)" title="Введите число или сумму (например, 100+150+230)" />
-  </div>
-  <div class="calc-group">
-    <input type="number" id="sInput" inputmode="numeric" placeholder="(S)" title="Введите число для суммирования с результатом (S)" />
-    <button id="calcBtn"><i class="fas fa-calculator"></i> <span>Рассчитать</span></button>
-  </div>
-  <div class="result" id="result"></div>
-  <div class="history" id="history"></div>
-  <div class="button-group">
-    <button id="clearHistory" title="Очистить историю"><i class="fas fa-trash-can"></i></button>
-    <button id="toggleHistory" title="Свернуть историю"><i class="fas fa-eye-slash"></i></button>
-    <button id="toggleTheme" title="Переключить тему"><i class="fas fa-moon"></i></button>
-  </div>
 
-<script>
-  // ————— Регистрация Service Worker —————
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('/sw.js')
-        .then(reg => console.log('Service Worker зарегистрирован:', reg))
-        .catch(err => console.warn('Ошибка регистрации Service Worker:', err));
-    });
-  }
-
-
-  // ————— Вспомогательная функция для копирования —————
-  function copyToClipboard(text) {
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(text).then(() => {
-        alert('Скопировано!');
-      }).catch(err => {
-        console.warn('Clipboard API недоступен:', err);
-        fallbackCopyToClipboard(text);
+  <script>
+    // ————— Регистрация Service Worker —————
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js')
+          .then(reg => console.log('Service Worker зарегистрирован:', reg))
+          .catch(err => console.warn('Ошибка регистрации Service Worker:', err));
       });
-    } else {
-      fallbackCopyToClipboard(text);
     }
-  }
 
-  function fallbackCopyToClipboard(text) {
-    const textArea = document.createElement('textarea');
-    textArea.value = text;
-    textArea.style.position = 'fixed';
-    textArea.style.opacity = '0';
-    document.body.appendChild(textArea);
-    textArea.focus();
-    textArea.select();
-    try {
-      document.execCommand('copy');
-      alert('Скопировано!');
-    } catch (err) {
-      console.warn('Ошибка копирования через execCommand:', err);
-      alert('Не удалось скопировать. Пожалуйста, скопируйте вручную.');
+    // ————— Вспомогательная функция для копирования —————
+    function copyToClipboard(text) {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(() => {
+          alert('Скопировано!');
+        }).catch(err => {
+          console.warn('Clipboard API недоступен:', err);
+          fallbackCopyToClipboard(text);
+        });
+      } else {
+        fallbackCopyToClipboard(text);
+      }
     }
-    document.body.removeChild(textArea);
-  }
 
-  // ————— Калькулятор + История —————
-  const modeEl = document.getElementById('mode'),
-        xEl = document.getElementById('xInput'),
-        yEl = document.getElementById('yInput'),
-        sEl = document.getElementById('sInput'),
-        btn = document.getElementById('calcBtn'),
-        res = document.getElementById('result'),
-        hist = document.getElementById('history'),
-        clearBtn = document.getElementById('clearHistory'),
-        toggleHistoryBtn = document.getElementById('toggleHistory'),
-        openTiny = document.getElementById('openTiny'),
-        toggleTheme = document.getElementById('toggleTheme');
+    function fallbackCopyToClipboard(text) {
+      const textArea = document.createElement('textarea');
+      textArea.value = text;
+      textArea.style.position = 'fixed';
+      textArea.style.opacity = '0';
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+      try {
+        document.execCommand('copy');
+        alert('Скопировано!');
+      } catch (err) {
+        console.warn('Ошибка копирования через execCommand:', err);
+        alert('Не удалось скопировать. Пожалуйста, скопируйте вручную.');
+      }
+      document.body.removeChild(textArea);
+    }
 
-  let historyArr = [];
-  try {
-    historyArr = JSON.parse(localStorage.getItem('calcHistory')) || [];
-  } catch (e) {
-    console.warn('Ошибка доступа к localStorage:', e);
-  }
+    // ————— Калькулятор + История —————
+    const modeEl = document.getElementById('mode'),
+          xEl = document.getElementById('xInput'),
+          yEl = document.getElementById('yInput'),
+          sEl = document.getElementById('sInput'),
+          btn = document.getElementById('calcBtn'),
+          res = document.getElementById('result'),
+          hist = document.getElementById('history'),
+          clearBtn = document.getElementById('clearHistory'),
+          toggleHistoryBtn = document.getElementById('toggleHistory'),
+          openTiny = document.getElementById('openTiny'),
+          toggleTheme = document.getElementById('toggleTheme');
 
-  function addHistory(item) {
-    const cleanItem = item.replace(/<[^>]+>/g, '');
-    historyArr.unshift(cleanItem);
+    let historyArr = [];
     try {
-      localStorage.setItem('calcHistory', JSON.stringify(historyArr));
+      historyArr = JSON.parse(localStorage.getItem('calcHistory')) || [];
     } catch (e) {
-      console.warn('Не удалось сохранить историю в localStorage:', e);
+      console.warn('Ошибка доступа к localStorage:', e);
     }
-    hist.innerHTML = historyArr.map(h => '<div class="history-item">' + h + '</div>').join('');
-  }
 
-  function updatePlaceholders() {
-    if (modeEl.value === 'percentOfNumber') {
-      xEl.placeholder = '% (X)';
-      yEl.placeholder = 'Результат (Y)';
-      sEl.style.display = 'none';
-    } else if (modeEl.value === 'numberIsPercent') {
-      xEl.placeholder = 'Число (X)';
-      yEl.placeholder = 'Число (Y)';
-      sEl.style.display = 'none';
-    } else if (modeEl.value === 'increaseByPercent') {
-      xEl.placeholder = '% (X)';
-      yEl.placeholder = 'Число (Y)';
-      sEl.style.display = 'none';
-    } else {
-      xEl.placeholder = '% (X)';
-      yEl.placeholder = 'Результат (Y)';
-      sEl.style.display = 'block';
+    function addHistory(item) {
+      const cleanItem = item.replace(/<[^>]+>/g, '');
+      historyArr.unshift(cleanItem);
+      try {
+        localStorage.setItem('calcHistory', JSON.stringify(historyArr));
+      } catch (e) {
+        console.warn('Не удалось сохранить историю в localStorage:', e);
+      }
+      hist.innerHTML = historyArr.map(h => '<div class="history-item">' + h + '</div>').join('');
     }
-    res.textContent = '';
-    xEl.focus();
-  }
 
-  function parseYInput(input) {
-    if (!input.includes('+')) {
-      return parseFloat(input);
-    }
-    const numbers = input.split('+').map(num => parseFloat(num.trim()));
-    if (numbers.some(isNaN)) {
-      return NaN;
-    }
-    return numbers.reduce((sum, num) => sum + num, 0);
-  }
-
-  function calcPercentOfNumber(x, y) {
-    return `${x}% от ${y} = ${(x / 100 * y).toFixed(2)}`;
-  }
-
-  function calcNumberIsPercent(x, y) {
-    return `${x} = ${(x / y * 100).toFixed(2)}% от ${y}`;
-  }
-
-  function calcNumberFromPercent(x, y, s) {
-    const base = y / (x / 100);
-    let result = `${x}% от ${base.toFixed(2)} = ${y}`;
-    if (!isNaN(s) && s !== '') {
-      const sum = base + parseFloat(s);
-      result += `<div class="sum-result">Сумма с S: ${sum.toFixed(2)}<button class="copy-btn" aria-label="Скопировать сумму" onclick="copyToClipboard('${sum.toFixed(2)}')"><i class="fas fa-copy"></i></button></div>`;
-    }
-    return result;
-  }
-
-  function calcIncreaseByPercent(x, y) {
-    return `${y} + ${x}% = ${((y * (100 + x)) / 100).toFixed(2)}`;
-  }
-
-  function calculate() {
-    const x = parseFloat(xEl.value);
-    const yRaw = yEl.value.trim();
-    const y = parseYInput(yRaw);
-    const s = sEl.value.trim();
-
-    if (isNaN(x) || isNaN(y)) {
-      res.textContent = 'Введите корректные значения для X и Y';
-      return;
-    }
-    if (modeEl.value === 'numberFromPercent' && x === 0) {
-      res.textContent = 'Процент не может быть равен 0';
-      return;
-    }
-    if (modeEl.value === 'numberIsPercent' && y === 0) {
-      res.textContent = 'Деление на ноль невозможно';
-      return;
-    }
-    let text = '';
-    switch (modeEl.value) {
-      case 'percentOfNumber': text = calcPercentOfNumber(x, y); break;
-      case 'numberIsPercent': text = calcNumberIsPercent(x, y); break;
-      case 'numberFromPercent': text = calcNumberFromPercent(x, y, s); break;
-      case 'increaseByPercent': text = calcIncreaseByPercent(x, y); break;
-    }
-    res.innerHTML = text;
-    addHistory(text);
-  }
-
-  btn.addEventListener('click', calculate);
-  [xEl, yEl, sEl].forEach(el => 
-    el.addEventListener('keypress', ev => ev.key === 'Enter' && calculate())
-  );
-  clearBtn.addEventListener('click', () => {
-    historyArr = [];
-    try {
-      localStorage.setItem('calcHistory', JSON.stringify(historyArr));
-    } catch (e) {
-      console.warn('Не удалось очистить localStorage:', e);
-    }
-    hist.innerHTML = '';
-  });
-  modeEl.addEventListener('change', updatePlaceholders);
-  updatePlaceholders();
-
-  // Валидация yInput
-  yEl.addEventListener('input', () => {
-    const validInput = /^[0-9+\s]*$/.test(yEl.value);
-    if (!validInput) {
-      yEl.classList.add('invalid');
-      res.textContent = 'Допустимы только цифры, + и пробелы';
-    } else {
-      yEl.classList.remove('invalid');
+    function updatePlaceholders() {
+      if (modeEl.value === 'percentOfNumber') {
+        xEl.placeholder = '% (X)';
+        yEl.placeholder = 'Результат (Y)';
+        sEl.style.display = 'none';
+      } else if (modeEl.value === 'numberIsPercent') {
+        xEl.placeholder = 'Число (X)';
+        yEl.placeholder = 'Число (Y)';
+        sEl.style.display = 'none';
+      } else if (modeEl.value === 'increaseByPercent') {
+        xEl.placeholder = '% (X)';
+        yEl.placeholder = 'Число (Y)';
+        sEl.style.display = 'none';
+      } else {
+        xEl.placeholder = '% (X)';
+        yEl.placeholder = 'Результат (Y)';
+        sEl.style.display = 'block';
+      }
       res.textContent = '';
+      xEl.focus();
     }
-  });
 
-  [xEl, yEl, sEl, document.getElementById('minInput'), document.getElementById('secInput')].forEach(el => {
-    el.addEventListener('input', () => {
-      if (el.value < 0 && (el.id === 'minInput' || el.id === 'secInput' || el.id === 'sInput')) {
-        el.classList.add('invalid');
-        res.textContent = 'Отрицательные значения недопустимы';
-      } else if (el.id !== 'yInput') {
-        el.classList.remove('invalid');
+    function parseYInput(input) {
+      if (!input.includes('+')) {
+        return parseFloat(input);
+      }
+      const numbers = input.split('+').map(num => parseFloat(num.trim()));
+      if (numbers.some(isNaN)) {
+        return NaN;
+      }
+      return numbers.reduce((sum, num) => sum + num, 0);
+    }
+
+    function calcPercentOfNumber(x, y) {
+      return `${x}% от ${y} = ${(x / 100 * y).toFixed(2)}`;
+    }
+
+    function calcNumberIsPercent(x, y) {
+      return `${x} = ${(x / y * 100).toFixed(2)}% от ${y}`;
+    }
+
+    function calcNumberFromPercent(x, y, s) {
+      const base = y / (x / 100);
+      let result = `${x}% от ${base.toFixed(2)} = ${y}`;
+      if (!isNaN(s) && s !== '') {
+        const sum = base + parseFloat(s);
+        result += `<div class="sum-result">Сумма с S: ${sum.toFixed(2)}<button class="copy-btn" aria-label="Скопировать сумму" onclick="copyToClipboard('${sum.toFixed(2)}')"><i class="fas fa-copy"></i></button></div>`;
+      }
+      return result;
+    }
+
+    function calcIncreaseByPercent(x, y) {
+      return `${y} + ${x}% = ${((y * (100 + x)) / 100).toFixed(2)}`;
+    }
+
+    function calculate() {
+      const x = parseFloat(xEl.value);
+      const yRaw = yEl.value.trim();
+      const y = parseYInput(yRaw);
+      const s = sEl.value.trim();
+
+      if (isNaN(x) || isNaN(y)) {
+        res.textContent = 'Введите корректные значения для X и Y';
+        return;
+      }
+      if (modeEl.value === 'numberFromPercent' && x === 0) {
+        res.textContent = 'Процент не может быть равен 0';
+        return;
+      }
+      if (modeEl.value === 'numberIsPercent' && y === 0) {
+        res.textContent = 'Деление на ноль невозможно';
+        return;
+      }
+      let text = '';
+      switch (modeEl.value) {
+        case 'percentOfNumber': text = calcPercentOfNumber(x, y); break;
+        case 'numberIsPercent': text = calcNumberIsPercent(x, y); break;
+        case 'numberFromPercent': text = calcNumberFromPercent(x, y, s); break;
+        case 'increaseByPercent': text = calcIncreaseByPercent(x, y); break;
+      }
+      res.innerHTML = text;
+      addHistory(text);
+      new Audio('https://www.soundjay.com/buttons/beep-01a.mp3').play();
+    }
+
+    btn.addEventListener('click', calculate);
+    [xEl, yEl, sEl].forEach(el => 
+      el.addEventListener('keypress', ev => ev.key === 'Enter' && calculate())
+    );
+    clearBtn.addEventListener('click', () => {
+      historyArr = [];
+      try {
+        localStorage.setItem('calcHistory', JSON.stringify(historyArr));
+      } catch (e) {
+        console.warn('Не удалось очистить localStorage:', e);
+      }
+      hist.innerHTML = '';
+    });
+    modeEl.addEventListener('change', updatePlaceholders);
+    updatePlaceholders();
+
+    // Валидация yInput
+    yEl.addEventListener('input', () => {
+      const validInput = /^[0-9+\s]*$/.test(yEl.value);
+      if (!validInput) {
+        yEl.classList.add('invalid');
+        res.textContent = 'Допустимы только цифры, + и пробелы';
+      } else {
+        yEl.classList.remove('invalid');
         res.textContent = '';
       }
     });
-  });
 
-  document.addEventListener('keydown', ev => {
-    if (ev.key === 'Escape') {
-      xEl.value = '';
-      yEl.value = '';
-      sEl.value = '';
-      document.getElementById('minInput').value = '';
-      document.getElementById('secInput').value = '';
-      res.textContent = '';
-    }
-  });
+    // Валидация отрицательных значений для xEl и sEl
+    [xEl, sEl].forEach(el => {
+      el.addEventListener('input', () => {
+        if (el.value < 0 && el.id === 'sInput') {
+          el.classList.add('invalid');
+          res.textContent = 'Отрицательные значения недопустимы';
+        } else {
+          el.classList.remove('invalid');
+          res.textContent = '';
+        }
+      });
+    });
 
-  // ————— Сворачивание истории —————
-  let isHistoryHidden = localStorage.getItem('historyHidden') === 'true';
-  if (isHistoryHidden) {
-    hist.classList.add('hidden');
-    toggleHistoryBtn.querySelector('i').classList.replace('fa-eye-slash', 'fa-history');
-    toggleHistoryBtn.title = 'Развернуть историю';
-  }
+    document.addEventListener('keydown', ev => {
+      if (ev.key === 'Escape') {
+        xEl.value = '';
+        yEl.value = '';
+        sEl.value = '';
+        res.textContent = '';
+      }
+    });
 
-  toggleHistoryBtn.addEventListener('click', () => {
-    isHistoryHidden = !isHistoryHidden;
-    hist.classList.toggle('hidden');
+    // ————— Сворачивание истории —————
+    let isHistoryHidden = localStorage.getItem('historyHidden') === 'true';
     if (isHistoryHidden) {
+      hist.classList.add('hidden');
       toggleHistoryBtn.querySelector('i').classList.replace('fa-eye-slash', 'fa-history');
       toggleHistoryBtn.title = 'Развернуть историю';
-    } else {
-      toggleHistoryBtn.querySelector('i').classList.replace('fa-history', 'fa-eye-slash');
-      toggleHistoryBtn.title = 'Свернуть историю';
     }
-    try {
-      localStorage.setItem('historyHidden', isHistoryHidden);
-    } catch (e) {
-      console.warn('Ошибка сохранения состояния истории в localStorage:', e);
-    }
-  });
 
-  // ————— Компактное окно —————
-  if (window.name === 'tinyCalc') openTiny.style.display = 'none';
+    toggleHistoryBtn.addEventListener('click', () => {
+      isHistoryHidden = !isHistoryHidden;
+      hist.classList.toggle('hidden');
+      if (isHistoryHidden) {
+        toggleHistoryBtn.querySelector('i').classList.replace('fa-eye-slash', 'fa-history');
+        toggleHistoryBtn.title = 'Развернуть историю';
+      } else {
+        toggleHistoryBtn.querySelector('i').classList.replace('fa-history', 'fa-eye-slash');
+        toggleHistoryBtn.title = 'Свернуть историю';
+      }
+      try {
+        localStorage.setItem('historyHidden', isHistoryHidden);
+      } catch (e) {
+        console.warn('Ошибка сохранения состояния истории в localStorage:', e);
+      }
+    });
 
-  openTiny.addEventListener('click', () => {
-    window.open(window.location.href, 'tinyCalc', 'width=350,height=600,left=100,top=100');
-    openTiny.style.display = 'none';
-  });
+    // ————— Компактное окно —————
+    if (window.name === 'tinyCalc') openTiny.style.display = 'none';
 
-  // ————— Темная тема —————
-  toggleTheme.addEventListener('click', () => {
-    document.body.classList.toggle('dark');
-    document.querySelector('.calculator').classList.toggle('dark');
-    document.querySelector('.history').classList.toggle('dark');
-  });
+    openTiny.addEventListener('click', () => {
+      window.open(window.location.href, 'tinyCalc', 'width=350,height=600,left=100,top=100');
+    });
 
-
-</script>
-
+    // ————— Темная тема —————
+    toggleTheme.addEventListener('click', () => {
+      document.body.classList.toggle('dark');
+      document.querySelector('.calculator').classList.toggle('dark');
+      document.querySelector('.history').classList.toggle('dark');
+    });
+  </script>
 </body>
 </html>
