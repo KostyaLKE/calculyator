@@ -13,7 +13,7 @@
   <link rel="apple-touch-icon" href="/icons/icon-192x192.png">
   <link rel="apple-touch-icon" sizes="192x192" href="/icons/icon-192x192.png">
   <link rel="apple-touch-icon" sizes="512x512" href="/icons/icon-512x512.png">
-  <title>Калькулятор + Таймер</title>
+  <title>Калькулятор</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
     html, body { 
@@ -141,54 +141,16 @@
       width: 34px;
       height: 34px;
     }
-    #timerBtn, #resetTimerBtn { 
-      background: #007AFF; 
-      width: calc(50% - 8px); 
-      font-weight: 500;
-    }
-    #timerBtn:hover, #resetTimerBtn:hover { 
-      background: #005BB5; 
-    }
-    #resetTimerBtn { background: #FF3B30; } 
-    #resetTimerBtn:hover { background: #D32F2F; }
-    .button-group { 
-      display: flex; 
-      justify-content: flex-end; 
-      flex-wrap: nowrap; 
-      align-items: center;
-      margin-top: 8px;
-      gap: 6px;
-    }
+
     .button-group button {
       width: 70px; /* Фиксированная ширина для одинакового размера */
     }
-    .timer-button-group { 
-      display: flex; 
-      justify-content: space-between; 
-      flex-wrap: nowrap; 
-      align-items: center;
-      margin-top: 8px;
-    }
-    .quick-timer-buttons {
-      display: flex;
-      justify-content: space-between;
-      gap: 6px;
-      margin-top: 8px;
-    }
-    .quick-timer-buttons button {
-      background: rgba(120, 120, 128, 0.2);
-      color: #007AFF;
-      width: calc(33.33% - 4px);
-      font-size: 13px;
-      padding: 6px;
-    }
+    
     .calculator.dark .quick-timer-buttons button {
       background: rgba(255, 255, 255, 0.1);
       color: #FFF;
     }
-    .quick-timer-buttons button:hover {
-      background: rgba(120, 120, 128, 0.3);
-    }
+
     .calculator.dark .quick-timer-buttons button:hover {
       background: rgba(255, 255, 255, 0.2);
     }
@@ -272,27 +234,7 @@
       overflow: hidden;
     }
     .history-item { margin-bottom: 4px; }
-    .timer-block { 
-      display: flex; 
-      justify-content: space-between; 
-      margin-top: 8px; 
-      gap: 10px;
-    }
-    .timer-block input { width: 48%; }
-    .timer-display { 
-      margin-top: 8px; 
-      font-size: 20px; 
-      color: #34C759; 
-      font-weight: 600; 
-    }
-    .timer-display.ending { color: #FF3B30; }
-    .progress-bar {
-      height: 6px;
-      background: rgba(0, 0, 0, 0.1);
-      border-radius: 3px;
-      margin-top: 8px;
-      overflow: hidden;
-    }
+
     .calculator.dark .progress-bar { background: rgba(255, 255, 255, 0.2); }
     .progress-bar::before {
       content: '';
@@ -333,10 +275,7 @@
         height: 32px;
       }
       #timerBtn, #resetTimerBtn { width: calc(50% - 6px); }
-      .quick-timer-buttons button {
-        width: calc(33.33% - 4px);
-        font-size: 12px;
-      }
+
     }
   </style>
 </head>
@@ -367,26 +306,6 @@
     <button id="toggleHistory" title="Свернуть историю"><i class="fas fa-eye-slash"></i></button>
     <button id="toggleTheme" title="Переключить тему"><i class="fas fa-moon"></i></button>
   </div>
-  <div class="timer-block">
-    <input type="number" id="minInput" inputmode="numeric" placeholder="Мин" title="Введите минуты" />
-    <input type="number" id="secInput" inputmode="numeric" placeholder="Сек" title="Введите секунды" />
-  </div>
-  <div class="quick-timer-buttons">
-    <button class="quick-timer" data-minutes="1">1 мин</button>
-    <button class="quick-timer" data-minutes="4">4 мин</button>
-    <button class="quick-timer" data-minutes="10">10 мин</button>
-  </div>
-  <div class="timer-button-group">
-    <button id="timerBtn"><i class="fas fa-clock"></i> <span>Start Timer</span></button>
-    <button id="resetTimerBtn"><i class="fas fa-rotate-left"></i> <span>Reset Timer</span></button>
-  </div>
-  <div class="timer-display" id="timerDisplay">00:00</div>
-  <div class="progress-bar" id="progressBar"></div>
-  <audio id="beep" preload="auto">
-    <source src="https://www.soundjay.com/buttons/beep-01a.mp3" type="audio/mpeg">
-    <source src="https://www.soundjay.com/buttons/beep-01a.ogg" type="audio/ogg">
-  </audio>
-</div>
 
 <script>
   // ————— Регистрация Service Worker —————
@@ -398,45 +317,6 @@
     });
   }
 
-  // ————— Уведомления —————
-  async function requestNotificationPermission() {
-    if (!('Notification' in window)) return false;
-    if (Notification.permission === 'granted') return true;
-    if (Notification.permission !== 'denied') {
-      const res = await Notification.requestPermission();
-      return res === 'granted';
-    }
-    return false;
-  }
-
-  function sendNotification(title, body) {
-    if (Notification.permission !== 'granted' || document.hasFocus()) return;
-    const notification = new Notification(title, { body, silent: true });
-    notification.onclick = () => {
-      window.focus();
-      notification.close();
-    };
-  }
-
-  // ————— Web Audio API —————
-  let audioCtx;
-  try {
-    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    const gainNode = audioCtx.createGain();
-    gainNode.gain.value = 2.0;
-    gainNode.connect(audioCtx.destination);
-
-    function beepOsc() {
-      const osc = audioCtx.createOscillator();
-      osc.type = 'sine';
-      osc.frequency.value = 440;
-      osc.connect(gainNode);
-      osc.start();
-      osc.stop(audioCtx.currentTime + 0.5);
-    }
-  } catch (e) {
-    console.warn('Web Audio API недоступен:', e);
-  }
 
   // ————— Вспомогательная функция для копирования —————
   function copyToClipboard(text) {
@@ -676,171 +556,6 @@
     document.querySelector('.history').classList.toggle('dark');
   });
 
-  // ————— Таймер с requestAnimationFrame —————
-  let timerInterval = null, total = 0, initialTotal = 0, isPaused = false, lastFrameTime = 0, timerEndTime = 0;
-  const display = document.getElementById('timerDisplay'),
-        timerBtn = document.getElementById('timerBtn'),
-        resetTimerBtn = document.getElementById('resetTimerBtn'),
-        progressBar = document.getElementById('progressBar'),
-        minInput = document.getElementById('minInput'),
-        secInput = document.getElementById('secInput'),
-        beepAudio = document.getElementById('beep');
-
-  function updateTimer(time) {
-    if (isPaused || total <= 0) return;
-    
-    if (!lastFrameTime) lastFrameTime = time;
-    const delta = (time - lastFrameTime) / 1000;
-    if (delta >= 1) {
-      total -= Math.floor(delta);
-      lastFrameTime = time;
-      if (total <= 0 || Date.now() >= timerEndTime) {
-        total = 0;
-        display.textContent = '00:00';
-        display.classList.add('ending');
-        if (audioCtx) {
-          try {
-            beepOsc();
-          } catch (e) {
-            console.warn('Ошибка воспроизведения Web Audio:', e);
-            try {
-              beepAudio.play();
-            } catch (e) {
-              console.warn('Ошибка воспроизведения запасного звука:', e);
-            }
-          }
-        } else {
-          try {
-            beepAudio.play();
-          } catch (e) {
-            console.warn('Ошибка воспроизведения запасного звука:', e);
-          }
-        }
-        sendNotification('Таймер завершён', 'Время вышло!');
-        timerBtn.querySelector('span').textContent = 'Start Timer';
-        timerInterval = null;
-        isPaused = false;
-        progressBar.style.setProperty('--progress', '0%');
-        timerEndTime = 0;
-        return;
-      }
-      const m = Math.floor(total / 60), s = total % 60;
-      display.textContent = `${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
-      progressBar.style.setProperty('--progress', `${(total / initialTotal) * 100}%`);
-      if (total < 10) display.classList.add('ending');
-    }
-    if (timerInterval) requestAnimationFrame(updateTimer);
-  }
-
-  // Проверка таймера при возвращении в приложение
-  document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'visible' && timerEndTime > 0 && Date.now() >= timerEndTime) {
-      total = 0;
-      display.textContent = '00:00';
-      display.classList.add('ending');
-      sendNotification('Таймер завершён', 'Время вышло!');
-      if (audioCtx) {
-        try {
-          beepOsc();
-        } catch (e) {
-          console.warn('Ошибка воспроизведения Web Audio:', e);
-          try {
-            beepAudio.play();
-          } catch (e) {
-            console.warn('Ошибка воспроизведения запасного звука:', e);
-          }
-        }
-      } else {
-        try {
-          beepAudio.play();
-        } catch (e) {
-          console.warn('Ошибка воспроизведения запасного звука:', e);
-        }
-      }
-      timerBtn.querySelector('span').textContent = 'Start Timer';
-      if (timerInterval) {
-        cancelAnimationFrame(timerInterval);
-        timerInterval = null;
-      }
-      isPaused = false;
-      progressBar.style.setProperty('--progress', '0%');
-      timerEndTime = 0;
-    }
-  });
-
-  timerBtn.addEventListener('click', async () => {
-    if (!timerInterval && total <= 0) {
-      await requestNotificationPermission();
-    }
-    if (timerInterval && !isPaused) {
-      timerInterval = null;
-      timerBtn.querySelector('span').textContent = 'Resume Timer';
-      isPaused = true;
-      return;
-    }
-    if (isPaused) {
-      if (total <= 0) {
-        alert('Установите время.');
-        return;
-      }
-      lastFrameTime = 0;
-      timerInterval = requestAnimationFrame(updateTimer);
-      timerBtn.querySelector('span').textContent = 'Pause Timer';
-      isPaused = false;
-      return;
-    }
-    const mins = parseInt(minInput.value) || 0;
-    const secs = parseInt(secInput.value) || 0;
-    total = mins * 60 + secs;
-    if (total <= 0) return alert('Установите время.');
-    initialTotal = total;
-    timerEndTime = Date.now() + total * 1000;
-    display.classList.remove('ending');
-    timerBtn.querySelector('span').textContent = 'Pause Timer';
-    lastFrameTime = 0;
-    timerInterval = requestAnimationFrame(updateTimer);
-    progressBar.style.setProperty('--progress', '100%');
-  });
-
-  resetTimerBtn.addEventListener('click', () => {
-    if (timerInterval) {
-      cancelAnimationFrame(timerInterval);
-      timerInterval = null;
-    }
-    total = 0;
-    initialTotal = 0;
-    isPaused = false;
-    timerEndTime = 0;
-    display.textContent = '00:00';
-    display.classList.remove('ending');
-    timerBtn.querySelector('span').textContent = 'Start Timer';
-    minInput.value = '';
-    secInput.value = '';
-    progressBar.style.setProperty('--progress', '0%');
-  });
-
-  // Быстрые значения таймера
-  document.querySelectorAll('.quick-timer').forEach(button => {
-    button.addEventListener('click', async () => {
-      const minutes = parseInt(button.getAttribute('data-minutes'));
-      minInput.value = minutes;
-      secInput.value = '0';
-      minInput.classList.remove('invalid');
-      secInput.classList.remove('invalid');
-      res.textContent = '';
-      if (!timerInterval) {
-        await requestNotificationPermission();
-        total = minutes * 60;
-        initialTotal = total;
-        timerEndTime = Date.now() + total * 1000;
-        display.classList.remove('ending');
-        timerBtn.querySelector('span').textContent = 'Pause Timer';
-        lastFrameTime = 0;
-        timerInterval = requestAnimationFrame(updateTimer);
-        progressBar.style.setProperty('--progress', '100%');
-      }
-    });
-  });
 </script>
 
 </body>
