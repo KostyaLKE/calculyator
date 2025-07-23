@@ -141,16 +141,54 @@
       width: 34px;
       height: 34px;
     }
-
+    #timerBtn, #resetTimerBtn { 
+      background: #007AFF; 
+      width: calc(50% - 8px); 
+      font-weight: 500;
+    }
+    #timerBtn:hover, #resetTimerBtn:hover { 
+      background: #005BB5; 
+    }
+    #resetTimerBtn { background: #FF3B30; } 
+    #resetTimerBtn:hover { background: #D32F2F; }
+    .button-group { 
+      display: flex; 
+      justify-content: flex-end; 
+      flex-wrap: nowrap; 
+      align-items: center;
+      margin-top: 8px;
+      gap: 6px;
+    }
     .button-group button {
       width: 70px; /* Фиксированная ширина для одинакового размера */
     }
-    
+    .timer-button-group { 
+      display: flex; 
+      justify-content: space-between; 
+      flex-wrap: nowrap; 
+      align-items: center;
+      margin-top: 8px;
+    }
+    .quick-timer-buttons {
+      display: flex;
+      justify-content: space-between;
+      gap: 6px;
+      margin-top: 8px;
+    }
+    .quick-timer-buttons button {
+      background: rgba(120, 120, 128, 0.2);
+      color: #007AFF;
+      width: calc(33.33% - 4px);
+      font-size: 13px;
+      padding: 6px;
+    }
     .calculator.dark .quick-timer-buttons button {
       background: rgba(255, 255, 255, 0.1);
       color: #FFF;
     }
-
+    .quick-timer-buttons button:hover {
+      background: rgba(120, 120, 128, 0.3);
+    }
     .calculator.dark .quick-timer-buttons button:hover {
       background: rgba(255, 255, 255, 0.2);
     }
@@ -234,7 +272,27 @@
       overflow: hidden;
     }
     .history-item { margin-bottom: 4px; }
-
+    .timer-block { 
+      display: flex; 
+      justify-content: space-between; 
+      margin-top: 8px; 
+      gap: 10px;
+    }
+    .timer-block input { width: 48%; }
+    .timer-display { 
+      margin-top: 8px; 
+      font-size: 20px; 
+      color: #34C759; 
+      font-weight: 600; 
+    }
+    .timer-display.ending { color: #FF3B30; }
+    .progress-bar {
+      height: 6px;
+      background: rgba(0, 0, 0, 0.1);
+      border-radius: 3px;
+      margin-top: 8px;
+      overflow: hidden;
+    }
     .calculator.dark .progress-bar { background: rgba(255, 255, 255, 0.2); }
     .progress-bar::before {
       content: '';
@@ -275,7 +333,10 @@
         height: 32px;
       }
       #timerBtn, #resetTimerBtn { width: calc(50% - 6px); }
-
+      .quick-timer-buttons button {
+        width: calc(33.33% - 4px);
+        font-size: 12px;
+      }
     }
   </style>
 </head>
@@ -555,6 +616,7 @@
     document.querySelector('.calculator').classList.toggle('dark');
     document.querySelector('.history').classList.toggle('dark');
   });
+
 
 </script>
 
