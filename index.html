@@ -100,7 +100,7 @@
       gap: 6px;
     }
     button:active { transform: scale(0.98); }
-    #openTiny, #toggleTheme, #clearHistory, #toggleHistory, #clearInputs { 
+    #openTiny, #toggleTheme, #clearHistory, #toggleHistory, #clearInputs, #exportHistory { 
       background: rgba(120, 120, 128, 0.2); 
       height: 34px; 
       width: 34px; 
@@ -111,18 +111,20 @@
     .calculator.dark #toggleTheme, 
     .calculator.dark #clearHistory,
     .calculator.dark #toggleHistory,
-    .calculator.dark #clearInputs { 
+    .calculator.dark #clearInputs,
+    .calculator.dark #exportHistory { 
       background: rgba(255, 255, 255, 0.1); 
       color: #FFF; 
     }
-    #openTiny:hover, #toggleTheme:hover, #clearHistory:hover, #toggleHistory:hover, #clearInputs:hover { 
+    #openTiny:hover, #toggleTheme:hover, #clearHistory:hover, #toggleHistory:hover, #clearInputs:hover, #exportHistory:hover { 
       background: rgba(120, 120, 128, 0.3); 
     }
     .calculator.dark #openTiny:hover, 
     .calculator.dark #toggleTheme:hover, 
     .calculator.dark #clearHistory:hover,
     .calculator.dark #toggleHistory:hover,
-    .calculator.dark #clearInputs:hover { 
+    .calculator.dark #clearInputs:hover,
+    .calculator.dark #exportHistory:hover { 
       background: rgba(255, 255, 255, 0.2); 
     }
     .mode-group {
@@ -323,6 +325,7 @@
       <button id="toggleHistory" title="Свернуть историю"><i class="fas fa-eye-slash"></i></button>
       <button id="toggleTheme" title="Переключить тему"><i class="fas fa-moon"></i></button>
       <button id="clearInputs" title="Очистить поля"><i class="fas fa-eraser"></i></button>
+      <button id="exportHistory" title="Экспортировать историю"><i class="fas fa-file-export"></i></button>
     </div>
   </div>
 
@@ -368,6 +371,31 @@
       document.body.removeChild(textArea);
     }
 
+    // ————— Экспорт истории —————
+    function exportHistory() {
+      if (historyArr.length === 0) {
+        res.textContent = 'История пуста';
+        res.classList.add('show');
+        return;
+      }
+      const text = historyArr.map(item => item.display).join('\n');
+      const blob = new Blob([text], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'calc_history.txt';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      res.textContent = 'История экспортирована';
+      res.classList.add('show');
+      setTimeout(() => {
+        res.textContent = '';
+        res.classList.remove('show');
+      }, 2000);
+    }
+
     // ————— Калькулятор + История —————
     const modeEl = document.getElementById('mode'),
           xEl = document.getElementById('xInput'),
@@ -383,7 +411,8 @@
           toggleHistoryBtn = document.getElementById('toggleHistory'),
           openTiny = document.getElementById('openTiny'),
           toggleTheme = document.getElementById('toggleTheme'),
-          clearInputs = document.getElementById('clearInputs');
+          clearInputs = document.getElementById('clearInputs'),
+          exportHistoryBtn = document.getElementById('exportHistory');
 
     let historyArr = [];
     try {
@@ -512,6 +541,7 @@
       res.classList.remove('show');
       xEl.focus();
     });
+    exportHistoryBtn.addEventListener('click', exportHistory);
     modeEl.addEventListener('change', updatePlaceholders);
     updatePlaceholders();
 
