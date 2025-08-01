@@ -608,7 +608,7 @@
     if (isHistoryHidden) {
       hist.classList.add('hidden');
       toggleHistoryBtn.querySelector('i').classList.replace('fa-eye-slash', 'fa-history');
-      toggleHistoryBtn.title = 'Развернуть историю';
+      toggleHistoryBtn.title = 'Р И';
     }
 
     toggleHistoryBtn.addEventListener('click', () => {
@@ -616,10 +616,10 @@
       hist.classList.toggle('hidden');
       if (isHistoryHidden) {
         toggleHistoryBtn.querySelector('i').classList.replace('fa-eye-slash', 'fa-history');
-        toggleHistoryBtn.title = 'Развернуть историю';
+        toggleHistoryBtn.title = 'Р И';
       } else {
         toggleHistoryBtn.querySelector('i').classList.replace('fa-history', 'fa-eye-slash');
-        toggleHistoryBtn.title = 'Свернуть историю';
+        toggleHistoryBtn.title = 'С И';
       }
       try {
         localStorage.setItem('historyHidden', isHistoryHidden);
@@ -642,7 +642,7 @@
       document.querySelector('.calculator').classList.add('dark');
       document.querySelector('.history').classList.add('dark');
       toggleTheme.querySelector('i').classList.replace('fa-moon', 'fa-sun');
-      toggleTheme.title = 'Переключить на светлую тему';
+      toggleTheme.title = 'П Т';
     }
 
     toggleTheme.addEventListener('click', () => {
