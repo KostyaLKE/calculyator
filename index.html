@@ -100,7 +100,7 @@
       gap: 6px;
     }
     button:active { transform: scale(0.98); }
-    #openTiny, #toggleTheme, #clearHistory, #toggleHistory { 
+    #openTiny, #toggleTheme, #clearHistory, #toggleHistory, #clearInputs { 
       background: rgba(120, 120, 128, 0.2); 
       height: 34px; 
       width: 34px; 
@@ -110,17 +110,19 @@
     .calculator.dark #openTiny, 
     .calculator.dark #toggleTheme, 
     .calculator.dark #clearHistory,
-    .calculator.dark #toggleHistory { 
+    .calculator.dark #toggleHistory,
+    .calculator.dark #clearInputs { 
       background: rgba(255, 255, 255, 0.1); 
       color: #FFF; 
     }
-    #openTiny:hover, #toggleTheme:hover, #clearHistory:hover, #toggleHistory:hover { 
+    #openTiny:hover, #toggleTheme:hover, #clearHistory:hover, #toggleHistory:hover, #clearInputs:hover { 
       background: rgba(120, 120, 128, 0.3); 
     }
     .calculator.dark #openTiny:hover, 
     .calculator.dark #toggleTheme:hover, 
     .calculator.dark #clearHistory:hover,
-    .calculator.dark #toggleHistory:hover { 
+    .calculator.dark #toggleHistory:hover,
+    .calculator.dark #clearInputs:hover { 
       background: rgba(255, 255, 255, 0.2); 
     }
     .mode-group {
@@ -317,9 +319,10 @@
     <div class="result" id="result"></div>
     <div class="history" id="history"></div>
     <div class="button-group">
-      <button id="clearHistory" title="О И"><i class="fas fa-trash-can"></i></button>
-      <button id="toggleHistory" title="С И"><i class="fas fa-eye-slash"></i></button>
-      <button id="toggleTheme" title="П Т"><i class="fas fa-moon"></i></button>
+      <button id="clearHistory" title="Очистить историю"><i class="fas fa-trash-can"></i></button>
+      <button id="toggleHistory" title="Свернуть историю"><i class="fas fa-eye-slash"></i></button>
+      <button id="toggleTheme" title="Переключить тему"><i class="fas fa-moon"></i></button>
+      <button id="clearInputs" title="Очистить поля"><i class="fas fa-eraser"></i></button>
     </div>
   </div>
 
@@ -379,7 +382,8 @@
           clearBtn = document.getElementById('clearHistory'),
           toggleHistoryBtn = document.getElementById('toggleHistory'),
           openTiny = document.getElementById('openTiny'),
-          toggleTheme = document.getElementById('toggleTheme');
+          toggleTheme = document.getElementById('toggleTheme'),
+          clearInputs = document.getElementById('clearInputs');
 
     let historyArr = [];
     try {
@@ -497,6 +501,17 @@
       }
       hist.innerHTML = '';
     });
+    clearInputs.addEventListener('click', () => {
+      xEl.value = '';
+      y1El.value = '';
+      y2El.value = '';
+      y3El.value = '';
+      y4El.value = '';
+      addSInput.value = '';
+      res.textContent = '';
+      res.classList.remove('show');
+      xEl.focus();
+    });
     modeEl.addEventListener('change', updatePlaceholders);
     updatePlaceholders();
 
@@ -608,7 +623,7 @@
     if (isHistoryHidden) {
       hist.classList.add('hidden');
       toggleHistoryBtn.querySelector('i').classList.replace('fa-eye-slash', 'fa-history');
-      toggleHistoryBtn.title = 'Р И';
+      toggleHistoryBtn.title = 'Развернуть историю';
     }
 
     toggleHistoryBtn.addEventListener('click', () => {
@@ -616,10 +631,10 @@
       hist.classList.toggle('hidden');
       if (isHistoryHidden) {
         toggleHistoryBtn.querySelector('i').classList.replace('fa-eye-slash', 'fa-history');
-        toggleHistoryBtn.title = 'Р И';
+        toggleHistoryBtn.title = 'Развернуть историю';
       } else {
         toggleHistoryBtn.querySelector('i').classList.replace('fa-history', 'fa-eye-slash');
-        toggleHistoryBtn.title = 'С И';
+        toggleHistoryBtn.title = 'Свернуть историю';
       }
       try {
         localStorage.setItem('historyHidden', isHistoryHidden);
@@ -642,7 +657,7 @@
       document.querySelector('.calculator').classList.add('dark');
       document.querySelector('.history').classList.add('dark');
       toggleTheme.querySelector('i').classList.replace('fa-moon', 'fa-sun');
-      toggleTheme.title = 'П Т';
+      toggleTheme.title = 'Переключить на светлую тему';
     }
 
     toggleTheme.addEventListener('click', () => {
