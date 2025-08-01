@@ -150,6 +150,13 @@
       padding: 8px;
       font-weight: 500;
       position: relative;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: opacity 0.3s ease, transform 0.3s ease;
+    }
+    .result.show {
+      opacity: 1;
+      transform: translateY(0);
     }
     .calculator.dark .result { 
       color: #FFF; 
@@ -218,7 +225,19 @@
       opacity: 0;
       overflow: hidden;
     }
-    .history-item { margin-bottom: 4px; }
+    .history-item { 
+      margin-bottom: 4px; 
+      cursor: pointer; 
+      padding: 4px; 
+      border-radius: 4px; 
+      transition: background 0.2s;
+    }
+    .history-item:hover { 
+      background: rgba(0, 122, 255, 0.1); 
+    }
+    .calculator.dark .history-item:hover { 
+      background: rgba(255, 255, 255, 0.2); 
+    }
     .button-group { 
       display: flex; 
       justify-content: flex-end; 
@@ -233,6 +252,35 @@
       display: flex;
       align-items: center;
       justify-content: center;
+    }
+    .keyboard {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 4px;
+      margin-top: 8px;
+      padding: 8px;
+      background: rgba(255, 255, 255, 0.7);
+      border-radius: 10px;
+    }
+    .calculator.dark .keyboard {
+      background: rgba(255, 255, 255, 0.1);
+    }
+    .keyboard button {
+      background: rgba(120, 120, 128, 0.2);
+      color: #007AFF;
+      font-size: 16px;
+      padding: 10px;
+      border-radius: 8px;
+    }
+    .calculator.dark .keyboard button {
+      background: rgba(255, 255, 255, 0.1);
+      color: #FFF;
+    }
+    .keyboard button:hover {
+      background: rgba(120, 120, 128, 0.3);
+    }
+    .calculator.dark .keyboard button:hover {
+      background: rgba(255, 255, 255, 0.2);
     }
     [title]:hover:after {
       content: attr(title);
@@ -264,6 +312,10 @@
         height: 32px;
         padding: 5px;
       }
+      .keyboard button {
+        padding: 8px;
+        font-size: 14px;
+      }
     }
   </style>
 </head>
@@ -285,6 +337,20 @@
     <div class="calc-group">
       <input type="number" id="sInput" inputmode="numeric" placeholder="(S)" title="Введите число для суммирования с результатом (S)" />
       <button id="calcBtn"><i class="fas fa-calculator"></i> <span>Рассчитать</span></button>
+    </div>
+    <div class="keyboard" id="keyboard">
+      <button data-value="1">1</button>
+      <button data-value="2">2</button>
+      <button data-value="3">3</button>
+      <button data-value="C">C</button>
+      <button data-value="4">4</button>
+      <button data-value="5">5</button>
+      <button data-value="6">6</button>
+      <button data-value="0">0</button>
+      <button data-value="7">7</button>
+      <button data-value="8">8</button>
+      <button data-value="9">9</button>
+      <button data-value="+">+</button>
     </div>
     <div class="result" id="result"></div>
     <div class="history" id="history"></div>
@@ -348,7 +414,8 @@
           clearBtn = document.getElementById('clearHistory'),
           toggleHistoryBtn = document.getElementById('toggleHistory'),
           openTiny = document.getElementById('openTiny'),
-          toggleTheme = document.getElementById('toggleTheme');
+          toggleTheme = document.getElementById('toggleTheme'),
+          keyboard = document.getElementById('keyboard');
 
     let historyArr = [];
     try {
@@ -365,7 +432,7 @@
       } catch (e) {
         console.warn('Не удалось сохранить историю в localStorage:', e);
       }
-      hist.innerHTML = historyArr.map(h => '<div class="history-item">' + h + '</div>').join('');
+      hist.innerHTML = historyArr.map((h, index) => `<div class="history-item" data-index="${index}">${h}</div>`).join('');
     }
 
     function updatePlaceholders() {
@@ -431,14 +498,17 @@
 
       if (isNaN(x) || isNaN(y)) {
         res.textContent = 'Введите корректные значения для X и Y';
+        res.classList.add('show');
         return;
       }
       if (modeEl.value === 'numberFromPercent' && x === 0) {
         res.textContent = 'Процент не может быть равен 0';
+        res.classList.add('show');
         return;
       }
       if (modeEl.value === 'numberIsPercent' && y === 0) {
         res.textContent = 'Деление на ноль невозможно';
+        res.classList.add('show');
         return;
       }
       let text = '';
@@ -449,8 +519,32 @@
         case 'increaseByPercent': text = calcIncreaseByPercent(x, y); break;
       }
       res.innerHTML = text;
+      res.classList.add('show');
       addHistory(text);
     }
+
+    // ————— Виртуальная клавиатура —————
+    let activeInput = xEl;
+    [xEl, yEl, sEl].forEach(input => {
+      input.addEventListener('focus', () => {
+        activeInput = input;
+      });
+    });
+
+    keyboard.addEventListener('click', (e) => {
+      if (e.target.tagName === 'BUTTON') {
+        const value = e.target.dataset.value;
+        if (value === 'C') {
+          activeInput.value = '';
+        } else if (value === '+' && activeInput.id !== 'yInput') {
+          return; // Знак + только для yInput
+        } else {
+          activeInput.value += value;
+        }
+        activeInput.dispatchEvent(new Event('input'));
+        activeInput.focus();
+      }
+    });
 
     btn.addEventListener('click', calculate);
     [xEl, yEl, sEl].forEach(el => 
@@ -468,24 +562,67 @@
     modeEl.addEventListener('change', updatePlaceholders);
     updatePlaceholders();
 
-    // Валидация yInput
+    // ————— Кликабельная история —————
+    hist.addEventListener('click', (e) => {
+      if (e.target.classList.contains('history-item')) {
+        const index = e.target.dataset.index;
+        const item = historyArr[index];
+        const modeMap = {
+          '% от': 'percentOfNumber',
+          ' = ': 'numberIsPercent',
+          '% от какого числа': 'numberFromPercent',
+          ' + ': 'increaseByPercent'
+        };
+        let mode = '';
+        for (const key in modeMap) {
+          if (item.includes(key)) {
+            mode = modeMap[key];
+            break;
+          }
+        }
+        if (mode) {
+          modeEl.value = mode;
+          updatePlaceholders();
+          const parts = item.split(/=|%|\+/);
+          if (mode === 'percentOfNumber') {
+            xEl.value = parts[0].trim();
+            yEl.value = parts[1].trim().split(' от ')[1];
+          } else if (mode === 'numberIsPercent') {
+            xEl.value = parts[0].trim();
+            yEl.value = parts[2].trim().split(' от ')[1];
+          } else if (mode === 'numberFromPercent') {
+            xEl.value = parts[0].trim();
+            yEl.value = parts[2].trim().split(' = ')[1];
+            sEl.value = item.includes('Сумма с S') ? item.match(/Сумма с S: ([\d.]+)/)[1] : '';
+          } else if (mode === 'increaseByPercent') {
+            xEl.value = parts[1].trim().split('%')[0];
+            yEl.value = parts[0].trim();
+          }
+          res.textContent = '';
+        }
+      }
+    });
+
+    // ————— Валидация yInput —————
     yEl.addEventListener('input', () => {
       const validInput = /^[0-9+\s]*$/.test(yEl.value);
       if (!validInput) {
         yEl.classList.add('invalid');
         res.textContent = 'Допустимы только цифры, + и пробелы';
+        res.classList.add('show');
       } else {
         yEl.classList.remove('invalid');
         res.textContent = '';
       }
     });
 
-    // Валидация отрицательных значений для xEl и sEl
+    // ————— Валидация отрицательных значений для xEl и sEl —————
     [xEl, sEl].forEach(el => {
       el.addEventListener('input', () => {
         if (el.value < 0 && el.id === 'sInput') {
           el.classList.add('invalid');
           res.textContent = 'Отрицательные значения недопустимы';
+          res.classList.add('show');
         } else {
           el.classList.remove('invalid');
           res.textContent = '';
@@ -499,6 +636,7 @@
         yEl.value = '';
         sEl.value = '';
         res.textContent = '';
+        res.classList.remove('show');
       }
     });
 
@@ -534,11 +672,29 @@
       window.open(window.location.href, 'tinyCalc', 'width=350,height=600,left=100,top=100');
     });
 
-    // ————— Темная тема —————
+    // ————— Темная тема с сохранением —————
+    const isDarkMode = localStorage.getItem('darkMode') === 'true';
+    if (isDarkMode) {
+      document.body.classList.add('dark');
+      document.querySelector('.calculator').classList.add('dark');
+      document.querySelector('.history').classList.add('dark');
+      toggleTheme.querySelector('i').classList.replace('fa-moon', 'fa-sun');
+      toggleTheme.title = 'Переключить на светлую тему';
+    }
+
     toggleTheme.addEventListener('click', () => {
       document.body.classList.toggle('dark');
       document.querySelector('.calculator').classList.toggle('dark');
       document.querySelector('.history').classList.toggle('dark');
+      const isDark = document.body.classList.contains('dark');
+      toggleTheme.querySelector('i').classList.toggle('fa-moon', !isDark);
+      toggleTheme.querySelector('i').classList.toggle('fa-sun', isDark);
+      toggleTheme.title = isDark ? 'Переключить на светлую тему' : 'Переключить на темную тему';
+      try {
+        localStorage.setItem('darkMode', isDark);
+      } catch (e) {
+        console.warn('Ошибка сохранения темы в localStorage:', e);
+      }
     });
   </script>
 </body>
