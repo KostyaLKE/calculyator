@@ -15,8 +15,8 @@ body.dark {
   backdrop-filter: blur(15px);
   border-radius: 16px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-  padding: 20px;
-  width: 340px;
+  padding: 16px;
+  width: 320px; /* было 340px */
   color: #000;
 }
 .dark .glass {
@@ -28,17 +28,18 @@ body.dark {
   gap: 6px;
   margin: 6px 0;
 }
-.row input {
-  flex: 1;
-}
+.row input,
 .row button {
-  flex: 1;
+  flex: 1 1 0; /* равномерное распределение */
+  min-width: 0; /* чтобы не вылазили */
 }
+
 input, select, button {
-  padding: 10px;
+  padding: 8px; /* было 10px */
   border: none;
   border-radius: 10px;
   font-size: 14px;
+  box-sizing: border-box;
 }
 input, select {
   background: rgba(255, 255, 255, 0.8);
