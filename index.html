@@ -2,13 +2,9 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black">
-  <meta name="apple-mobile-web-app-title" content="Калькулятор">
+  <meta name="viewport" content="width=device-width, maximum-scale=1.0, user-scalable=no">
   <link rel="manifest" href="manifest.json">
   <link rel="apple-touch-icon" href="icons/icon-192x192.png">
-  <link rel="apple-touch-icon" sizes="192x192" href="icons/icon-192x192.png">
   <link rel="apple-touch-icon" sizes="512x512" href="icons/icon-512x512.png">
   <title>Калькулятор</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -17,7 +13,7 @@
 <body>
   <div class="calculator glass">
     <div class="mode-group">
-      <select id="mode" title="Выберите режим расчета">
+      <select id="mode">
         <option value="percentOfNumber">X% от суммы Y?</option>
         <option value="numberIsPercent">Y — сколько % от суммы Y?</option>
         <option value="numberFromPercent" selected>X% от какого числа = Y?</option>
@@ -25,19 +21,29 @@
       </select>
       <button id="openTiny" title="Открыть компактное окно"><i class="fas fa-window-restore"></i></button>
     </div>
-    <div class="input-group">
-      <input type="number" id="xInput" placeholder="% (X)">
-      <input type="number" id="y1Input" placeholder="Y1">
-      <input type="number" id="y2Input" placeholder="Y2">
-      <input type="number" id="y3Input" placeholder="Y3">
-      <input type="number" id="y4Input" placeholder="Y4">
+
+    <!-- Строка 1 -->
+    <div class="row">
+      <input type="number" inputmode="decimal" pattern="[0-9]*" id="xInput" placeholder="% (X)">
+      <input type="number" inputmode="decimal" pattern="[0-9]*" id="y1Input" placeholder="Y1">
     </div>
-    <div class="calc-group">
-      <input type="number" id="addSInput" placeholder="(S)" style="display: none;">
+
+    <!-- Строка 2 -->
+    <div class="row">
+      <input type="number" inputmode="decimal" pattern="[0-9]*" id="y2Input" placeholder="Y2">
+      <input type="number" inputmode="decimal" pattern="[0-9]*" id="y3Input" placeholder="Y3">
+      <input type="number" inputmode="decimal" pattern="[0-9]*" id="y4Input" placeholder="Y4">
+    </div>
+
+    <!-- Строка 3 -->
+    <div class="row">
+      <input type="number" inputmode="decimal" pattern="[0-9]*" id="addSInput" placeholder="(S)">
       <button id="calcBtn"><i class="fas fa-calculator"></i> Рассчитать</button>
     </div>
+
     <div class="result" id="result"></div>
     <div class="history" id="history"></div>
+
     <div class="button-group">
       <button id="clearHistory" title="Очистить историю"><i class="fas fa-trash-can"></i></button>
       <button id="toggleHistory" title="Свернуть историю"><i class="fas fa-eye-slash"></i></button>
