@@ -22,28 +22,34 @@
       <button id="openTiny" title="Открыть компактное окно"><i class="fas fa-window-restore"></i></button>
     </div>
 
-    <!-- Строка 1 -->
+    <!-- Строка 1: X%, Y1, S -->
     <div class="row">
-      <input type="text" inputmode="numeric" pattern="[0-9]*" id="xInput" placeholder="% (X)">
-      <input type="text" inputmode="numeric" pattern="[0-9]*" id="y1Input" placeholder="Y1">
-    </div>
-
-    <!-- Строка 2 -->
-    <div class="row">
-      <input type="text" inputmode="numeric" pattern="[0-9]*" id="y2Input" placeholder="Y2">
-      <input type="text" inputmode="numeric" pattern="[0-9]*" id="y3Input" placeholder="Y3">
-      <input type="text" inputmode="numeric" pattern="[0-9]*" id="y4Input" placeholder="Y4">
-    </div>
-
-    <!-- Строка 3 -->
-    <div class="row">
+      <input type="text" inputmode="numeric" pattern="[0-9]*" id="xInput" placeholder="% (X)" maxlength="3" max="100">
+      <input type="text" inputmode="numeric" pattern="[0-9]*" id="y1Input" placeholder="Y1" maxlength="4">
       <input type="text" inputmode="numeric" pattern="[0-9]*" id="addSInput" placeholder="(S)">
-      <button id="calcBtn"><i class="fas fa-calculator"></i> Рассчитать</button>
     </div>
 
+    <!-- Строка 2: Y2, Y3, Y4 -->
+    <div class="row">
+      <input type="text" inputmode="numeric" pattern="[0-9]*" id="y2Input" placeholder="Y2" maxlength="5">
+      <input type="text" inputmode="numeric" pattern="[0-9]*" id="y3Input" placeholder="Y3" maxlength="5">
+      <input type="text" inputmode="numeric" pattern="[0-9]*" id="y4Input" placeholder="Y4" maxlength="5">
+    </div>
+
+    <!-- Кнопка расчёта -->
+    <div class="row center">
+      <button id="calcBtn" class="icon-btn" title="Рассчитать">
+        <i class="fas fa-calculator"></i>
+      </button>
+    </div>
+
+    <!-- Результат -->
     <div class="result" id="result"></div>
+
+    <!-- История -->
     <div class="history" id="history"></div>
 
+    <!-- Панель управления -->
     <div class="button-group">
       <button id="clearHistory" title="Очистить историю"><i class="fas fa-trash-can"></i></button>
       <button id="toggleHistory" title="Свернуть историю"><i class="fas fa-eye-slash"></i></button>
