@@ -1,4 +1,4 @@
-const CACHE_NAME = 'calculator-v2';
+const CACHE_NAME = 'calculator-v5'; // меняем при каждом обновлении
 const urlsToCache = [
   '/',
   '/index.html',
@@ -11,6 +11,7 @@ const urlsToCache = [
   'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css'
 ];
 
+// Установка SW и кэширование файлов
 self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME)
@@ -19,25 +20,29 @@ self.addEventListener('install', event => {
   );
 });
 
+// Очистка старого кэша при активации
 self.addEventListener('activate', event => {
-  const cacheWhitelist = [CACHE_NAME];
   event.waitUntil(
     caches.keys().then(cacheNames =>
       Promise.all(
-        cacheNames.map(cacheName => {
-          if (!cacheWhitelist.includes(cacheName)) {
-            return caches.delete(cacheName);
-          }
+        cacheNames.map(name => {
+          if (name !== CACHE_NAME) return caches.delete(name);
         })
       )
     ).then(() => self.clients.claim())
   );
 });
 
+// Перехват запросов — сначала сеть, потом кэш
 self.addEventListener('fetch', event => {
   event.respondWith(
-    caches.match(event.request).then(response => {
-      return response || fetch(event.request);
-    })
+    fetch(event.request)
+      .then(response => {
+        // сохраняем обновлённый файл в кэш
+        const clone = response.clone();
+        caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+        return response;
+      })
+      .catch(() => caches.match(event.request))
   );
 });
