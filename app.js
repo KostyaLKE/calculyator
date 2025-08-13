@@ -57,8 +57,15 @@ function renderHistory() {
   ).join('');
 }
 
-function addHistory(item, yValues) {
-  historyArr.unshift({ display: item.replace(/<[^>]+>/g, ''), yValues });
+function htmlToPlainText(html) {
+  const tmp = document.createElement('div');
+  tmp.innerHTML = html;
+  return (tmp.textContent || tmp.innerText || '').trim();
+}
+
+function addHistory(htmlItem, yValues) {
+  const display = htmlToPlainText(htmlItem);
+  historyArr.unshift({ display, yValues });
   localStorage.setItem('calcHistory', JSON.stringify(historyArr));
   renderHistory();
 }
@@ -93,6 +100,17 @@ function restoreState() {
   } catch {}
   roundToggle?.classList.toggle('active', roundingEnabled);
 }
+
+// одноразовая зачистка старых историй (если тянулись onclick)
+;(function migrateHistory() {
+  let changed = false;
+  historyArr = historyArr.map(h => {
+    const cleaned = h.display.replace(/showToast[\s\S]*$/,'').trim();
+    if (cleaned !== h.display) { changed = true; return {...h, display: cleaned}; }
+    return h;
+  });
+  if (changed) localStorage.setItem('calcHistory', JSON.stringify(historyArr));
+})();
 
 // ---------- INPUT LIMITS ----------
 const onlyDigits = s => (s || '').replace(/[^\d]/g, '');
@@ -133,34 +151,17 @@ function updateSumChip() {
   sumChip.textContent = `ΣY: ${fmt(sumY())}`;
 }
 
-// ---------- ROUNDING LOGIC ----------
-// Базовое округление к ближайшему 5
-function roundNearest5(n) {
-  return Math.round((Number(n) || 0) / 5) * 5;
+// ---------- ROUNDING: всегда вверх к ближайшему 5 ----------
+function roundUp5(n) {
+  return Math.ceil((Number(n) || 0) / 5) * 5;
 }
-// Если попали на «…5» — щёлкаем вниз к «…0» (по твоим примерам 156→150)
-function snapFiveDown(n, original) {
-  if (n % 10 === 5) return n - 5; // 155 -> 150, 275 -> 270
-  return n;
-}
-// Вариант «всегда вверх к 5» (если захочешь включить — раскомментируй строку в formatOut)
-// function roundUp5(n) { return Math.ceil((Number(n) || 0) / 5) * 5; }
-
 function formatOut(n, { useRounding = true } = {}) {
   const num = Number(n);
   if (!isFinite(num)) return '—';
-
   if (roundingEnabled && useRounding) {
-    // по умолчанию: ближайший 5 + щелчок 5 вниз к 0
-    let r = roundNearest5(num);
-    r = snapFiveDown(r, num);
+    const r = roundUp5(num);
     return Number.isInteger(r) ? r.toLocaleString('ru-RU') : r.toFixed(2);
-
-    // если нужно "всегда вверх", замени блок выше на:
-    // const r = roundUp5(num);
-    // return Number.isInteger(r) ? r.toLocaleString('ru-RU') : r.toFixed(2);
   }
-
   const v = Number(num.toFixed(2));
   return Number.isInteger(v) ? v.toLocaleString('ru-RU') : v.toFixed(2);
 }
@@ -180,7 +181,7 @@ function calcNumberFromPercent(x, Y, s) {
   if (s !== '' && !isNaN(parseFloat(s))) {
     const sum = base + parseFloat(s);
     text += `<div class="sum-result">Сумма с S: ${formatOut(sum)}
-      <button class="copy-btn" onclick="(${copyToClipboard.toString()})('${Number(sum).toFixed(2)}')"><i class="fas fa-copy"></i></button>
+      <button class="copy-btn" data-copy="${Number(sum).toFixed(2)}"><i class="fas fa-copy"></i></button>
     </div>`;
   }
   return text;
@@ -216,27 +217,24 @@ function calculate(source = 'auto') {
     return;
   }
 
-  let text = '';
+  let html = '';
   switch (modeEl.value) {
-    case 'percentOfNumber': text = calcPercentOfNumber(x, Y); break;
-    case 'numberIsPercent': text = calcNumberIsPercent(x, Y); break;
-    case 'numberFromPercent': text = calcNumberFromPercent(x, Y, s); break;
-    case 'increaseByPercent': text = calcIncreaseByPercent(x, Y); break;
+    case 'percentOfNumber': html = calcPercentOfNumber(x, Y); break;
+    case 'numberIsPercent': html = calcNumberIsPercent(x, Y); break;
+    case 'numberFromPercent': html = calcNumberFromPercent(x, Y, s); break;
+    case 'increaseByPercent': html = calcIncreaseByPercent(x, Y); break;
   }
-  res.innerHTML = text;
+  res.innerHTML = html;
   res.classList.add('show');
 
-  if (source === 'manual') addHistory(text, yInputs.map(inp => inp.value));
+  if (source === 'manual') addHistory(html, yInputs.map(inp => inp.value));
   saveState();
 }
 
 // ---------- DEBOUNCE ----------
 function debounce(fn, ms) {
   let t = null;
-  return (...args) => {
-    clearTimeout(t);
-    t = setTimeout(() => fn(...args), ms);
-  };
+  return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), ms); };
 }
 const autoCalc = debounce(() => { updateSumChip(); calculate('auto'); }, 150);
 
@@ -279,15 +277,16 @@ openTinyBtn.addEventListener('click', () => {
   window.open(window.location.href, 'tinyCalc', 'width=350,height=600');
 });
 
-// Тумблер округления
-roundToggle.addEventListener('click', () => {
-  roundingEnabled = !roundingEnabled;
-  roundToggle.classList.toggle('active', roundingEnabled);
-  saveState();
-  calculate('auto'); // перерисовать результат с новым режимом
+// делегирование: копирование суммы S
+document.addEventListener('click', e => {
+  const btn = e.target.closest('.copy-btn');
+  if (btn) {
+    const val = btn.getAttribute('data-copy') || '';
+    if (val) copyToClipboard(val);
+  }
 });
 
-// История → подстановка значений
+// История → подстановка Y
 hist.addEventListener('click', e => {
   const itemEl = e.target.closest('.history-item');
   if (!itemEl) return;
@@ -301,4 +300,4 @@ hist.addEventListener('click', e => {
 renderHistory();
 restoreState();
 updateSumChip();
-calculate('auto'); // показать сохранённый результат (если был)
+calculate('auto');
