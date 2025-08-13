@@ -209,3 +209,6 @@ button:active { transform: scale(0.97); }
   z-index: 999;
 }
 #toast.show { opacity: 1; }
+
+/* ===== Служебное (для сворачивания истории) ===== */
+.hidden { display: none !important; }
