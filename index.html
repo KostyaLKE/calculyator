@@ -36,14 +36,21 @@
       <input type="text" inputmode="numeric" pattern="[0-9]*" id="y4Input" placeholder="Y4" maxlength="5">
     </div>
 
-    <!-- ОДНА строка: ΣY, Округлить, Рассчитать -->
-    <div class="row meta">
-      <div id="sumChip" class="chip">ΣY: 0</div>
-      <div class="meta-actions">
-        <button id="roundToggle" class="chip-btn" title="Округлять результаты к ближайшим 5">≈ Округлить</button>
-        <button id="calcBtn" class="chip-btn calc-btn" title="Рассчитать"><i class="fas fa-calculator"></i></button>
-      </div>
-    </div>
+<!-- ОДНА строка: ΣY, Округлить, Рассчитать -->
+<div class="row meta meta-row">
+  <div id="sumChip" class="chip chip-s">ΣY: 0</div>
+
+  <button id="roundToggle" class="chip-btn pill" title="Округлять результат вверх к 5">
+    <i class="fas fa-equals"></i>
+    <span class="btn-text">Округлить</span>
+  </button>
+
+  <button id="calcBtn" class="chip-btn pill calc-btn" title="Рассчитать">
+    <i class="fas fa-calculator"></i>
+    <span class="btn-text">Рассчитать</span>
+  </button>
+</div>
+
 
     <!-- Результат -->
     <div class="result" id="result"></div>
