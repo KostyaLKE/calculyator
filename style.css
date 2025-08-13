@@ -1,102 +1,211 @@
-/* БАЗА */
+/* ===== БАЗА ===== */
 body {
-  display: flex; justify-content: center; align-items: center;
-  min-height: 100vh; margin: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   background: linear-gradient(135deg, #dfe9f3, #ffffff);
 }
-body.dark { background: linear-gradient(135deg, #1C2526, #2a3435); }
+body.dark {
+  background: linear-gradient(135deg, #1C2526, #2a3435);
+}
 
-/* КАРТОЧКА */
+/* ===== КАРТОЧКА ===== */
 .glass {
-  background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(15px);
-  border-radius: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.2);
-  padding: 16px; width: 320px; color: #000;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(15px);
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  padding: 16px;
+  width: 320px; /* под iPhone 12 Pro ок */
+  color: #000;
 }
-.dark .glass { background: rgba(0,0,0,0.25); color: #fff; }
+.dark .glass {
+  background: rgba(0, 0, 0, 0.25);
+  color: #fff;
+}
 
-.mode-group { display: flex; gap: 6px; align-items: center; margin-bottom: 6px; }
-.mode-group select { flex: 1 1 0; }
+.mode-group {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  margin-bottom: 6px;
+}
+.mode-group select {
+  flex: 1 1 0;
+}
 
-/* РЯДЫ */
-.row { display: flex; gap: 6px; margin: 6px 0; }
-.row input, .row button { flex: 1 1 0; min-width: 0; }
-.row.center { justify-content: center; }
+/* ===== РЯДЫ ===== */
+.row {
+  display: flex;
+  gap: 6px;
+  margin: 6px 0;
+}
+.row input,
+.row button {
+  flex: 1 1 0;
+  min-width: 0;
+}
+.row.center {
+  justify-content: center;
+}
 
-/* ФОРМА */
+/* ===== ЭЛЕМЕНТЫ ФОРМЫ ===== */
 input, select, button {
-  padding: 8px; border: none; border-radius: 10px; font-size: 14px; box-sizing: border-box;
+  padding: 8px;
+  border: none;
+  border-radius: 10px;
+  font-size: 14px;
+  box-sizing: border-box; /* важно для iOS, чтобы не разъезжалось */
 }
-input, select { background: rgba(255,255,255,0.8); }
-.dark input, .dark select { background: rgba(255,255,255,0.1); color: #fff; }
-button { background: #007AFF; color: #fff; cursor: pointer; transition: transform .1s, background .3s; }
+input, select {
+  background: rgba(255, 255, 255, 0.8);
+}
+.dark input, .dark select {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+button {
+  background: #007AFF;
+  color: #fff;
+  cursor: pointer;
+  transition: transform 0.1s ease, background 0.3s ease;
+}
 button:hover { background: #005BB5; }
 button:active { transform: scale(0.97); }
 
-/* РЕЗУЛЬТАТ */
+/* ===== РЕЗУЛЬТАТ ===== */
 .result {
-  margin-top: 10px; padding: 10px; border-radius: 10px; background: rgba(0,122,255,0.15);
-  opacity: 0; transform: translateY(10px); transition: opacity .25s, transform .25s;
-  text-align: center; font-size: 1.12rem; font-weight: 500;
+  margin-top: 10px;
+  padding: 10px;
+  border-radius: 10px;
+  background: rgba(0, 122, 255, 0.15);
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 0.25s ease, transform 0.25s ease;
+  text-align: center; /* по центру */
+  font-size: 1.12rem;
+  font-weight: 500;
 }
-.result.show { opacity: 1; transform: translateY(0); }
+.result.show {
+  opacity: 1;
+  transform: translateY(0);
+}
 
-/* ИСТОРИЯ */
+/* ===== ИСТОРИЯ ===== */
 .history {
-  font-size: 12px; margin-top: 10px; max-height: 120px; overflow-y: auto;
-  background: rgba(255,255,255,0.2); border-radius: 10px; padding: 6px;
+  font-size: 12px;
+  margin-top: 10px;
+  max-height: 120px;
+  overflow-y: auto;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+  padding: 6px;
 }
-.history-item { padding: 4px; cursor: pointer; border-radius: 6px; transition: background .2s; }
-.history-item:hover { background: rgba(0,122,255,0.15); }
+.history-item {
+  padding: 4px;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: background 0.2s ease;
+}
+.history-item:hover {
+  background: rgba(0, 122, 255, 0.15);
+}
 
-/* одна строка для ΣY + Округлить + Рассчитать */
-.row.meta { 
-  align-items: center; 
-  justify-content: space-between; 
-  flex-wrap: nowrap;           /* не переносить */
+/* ===== СТРОКА: ΣY | Округлить | Рассчитать ===== */
+.row.meta { margin-top: 4px; }
+.row.meta.meta-row {
+  align-items: stretch;
+  gap: 6px;
+  flex-wrap: nowrap;          /* не переносить */
 }
-.meta-actions { 
-  display: flex; 
-  gap: 6px; 
-  flex: 0 0 auto;              /* не растягивать */
+.meta-row > * {
+  flex: 1 1 0;                /* три равные колонки */
+  min-width: 0;               /* никакого переполнения */
+}
+
+/* Компактный ΣY */
+.chip.chip-s {
+  padding: 6px 8px;
+  border-radius: 999px;
+  background: rgba(0,0,0,0.06);
+  font-size: 12px;
+  font-weight: 700;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
 }
-#sumChip { 
-  flex: 1 1 auto; 
-  min-width: 0; 
-  overflow: hidden; 
+.dark .chip.chip-s { background: rgba(255,255,255,0.15); }
+
+/* Кнопки-«пилюли» одинакового вида */
+.chip-btn.pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: #007AFF;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: background .2s ease, transform .1s ease;
+  min-height: 34px;
+  white-space: nowrap;
+  overflow: hidden;
   text-overflow: ellipsis;
 }
+.chip-btn.pill:hover { background: #005BB5; }
+.chip-btn.pill:active { transform: scale(0.97); }
+.chip-btn.pill i { font-size: 14px; line-height: 1; }
 
+/* Активное состояние тумблера округления */
+.chip-btn.pill.active { background: #34C759; }
 
-/* ЧИП и КНОПКИ-ЧИПЫ */
-.chip {
-  padding: 6px 10px; border-radius: 999px; background: rgba(0,0,0,0.06);
-  font-size: 13px; font-weight: 600; white-space: nowrap;
+/* На очень узких экранах оставляем только иконки */
+@media (max-width: 360px) {
+  .chip-btn.pill .btn-text { display: none; }
 }
-.dark .chip { background: rgba(255,255,255,0.15); }
 
-.chip-btn {
-  padding: 6px 10px; border-radius: 999px; background: #007AFF; color: #fff;
-  font-size: 13px; border: none; cursor: pointer; transition: background .2s, transform .1s;
-}
-.chip-btn:hover { background: #005BB5; }
-.chip-btn:active { transform: scale(0.97); }
-.chip-btn.active { background: #34C759; } /* зелёный, когда включено */
-
-.calc-btn i { font-size: 14px; display: inline-block; }
-
-/* Блок "Сумма с S" в результате */
+/* ===== Блок "Сумма с S" в результате ===== */
 .sum-result {
-  display: inline-flex; align-items: center; gap: 8px; margin-top: 8px;
-  padding: 6px 10px; border-radius: 8px; background: rgba(0,122,255,0.2);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: rgba(0, 122, 255, 0.2);
 }
-.copy-btn { border: none; border-radius: 6px; padding: 4px 8px; font-size: 12px; background: #007AFF; color: #fff; cursor: pointer; }
+.copy-btn {
+  border: none;
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 12px;
+  background: #007AFF;
+  color: #fff;
+  cursor: pointer;
+}
 
-/* Toast */
+/* ===== Toast ===== */
 #toast {
-  position: fixed; top: 20px; right: 20px; z-index: 999;
-  background: rgba(0,0,0,0.8); color: #fff; padding: 10px 14px; border-radius: 6px;
-  font-size: 14px; opacity: 0; pointer-events: none; transition: opacity .3s;
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: rgba(0, 0, 0, 0.8);
+  color: #fff;
+  padding: 10px 14px;
+  border-radius: 6px;
+  font-size: 14px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+  z-index: 999;
 }
 #toast.show { opacity: 1; }
