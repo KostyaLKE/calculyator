@@ -98,7 +98,16 @@ function restoreState() {
     if (state.dark) document.body.classList.add('dark');
     roundingEnabled = !!state.rounding;
   } catch {}
-  roundToggle?.classList.toggle('active', roundingEnabled);
+  roundToggle.addEventListener('click', () => {
+  roundingEnabled = !roundingEnabled;
+  roundToggle.classList.toggle('active', roundingEnabled);
+  const span = roundToggle.querySelector('.btn-text');
+  if (span) span.textContent = roundingEnabled ? 'Округление' : 'Округлить';
+  saveState();
+  calculate('auto');
+});
+
+
 }
 
 // одноразовая зачистка старых историй (если тянулись onclick)
