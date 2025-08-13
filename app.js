@@ -25,7 +25,7 @@ const roundToggle = document.getElementById('roundToggle');
 let historyArr = JSON.parse(localStorage.getItem('calcHistory') || '[]');
 let roundingEnabled = JSON.parse(localStorage.getItem('roundingEnabled') || 'false');
 
-// ---------- UTILS ----------
+// ---------- HELPERS ----------
 const fmt = n => Number(n).toLocaleString('ru-RU');
 
 function showToast(msg) {
@@ -91,7 +91,7 @@ function restoreState() {
     if (state.dark) document.body.classList.add('dark');
     roundingEnabled = !!state.rounding;
   } catch {}
-  roundToggle.classList.toggle('active', roundingEnabled);
+  roundToggle?.classList.toggle('active', roundingEnabled);
 }
 
 // ---------- INPUT LIMITS ----------
@@ -122,7 +122,7 @@ function sanitizeS() {
   addSInput.value = v;
 }
 
-// ---------- ΣY CHIP ----------
+// ---------- ΣY ----------
 function sumY() {
   return yInputs
     .map(inp => parseInt(onlyDigits(inp.value) || '0', 10))
@@ -133,28 +133,36 @@ function updateSumChip() {
   sumChip.textContent = `ΣY: ${fmt(sumY())}`;
 }
 
-// ---------- SMART ROUNDING (к 50, 55 или 60) ----------
-function roundSmart(n) {
-  const v = Math.round(Number(n) || 0);     // убираем копейки
-  const base = Math.floor(v / 100) * 100;   // базовые сотни
-  const candidates = [base + 50, base + 55, base + 60];
-  // выбираем ближайший; при равенстве — больший
-  let best = candidates[0];
-  let bestDiff = Math.abs(v - best);
-  for (let i = 1; i < candidates.length; i++) {
-    const d = Math.abs(v - candidates[i]);
-    if (d < bestDiff || (d === bestDiff && candidates[i] > best)) {
-      best = candidates[i];
-      bestDiff = d;
-    }
-  }
-  return best;
+// ---------- ROUNDING LOGIC ----------
+// Базовое округление к ближайшему 5
+function roundNearest5(n) {
+  return Math.round((Number(n) || 0) / 5) * 5;
 }
-function formatOut(n, {round=true}={}) {
+// Если попали на «…5» — щёлкаем вниз к «…0» (по твоим примерам 156→150)
+function snapFiveDown(n, original) {
+  if (n % 10 === 5) return n - 5; // 155 -> 150, 275 -> 270
+  return n;
+}
+// Вариант «всегда вверх к 5» (если захочешь включить — раскомментируй строку в formatOut)
+// function roundUp5(n) { return Math.ceil((Number(n) || 0) / 5) * 5; }
+
+function formatOut(n, { useRounding = true } = {}) {
   const num = Number(n);
   if (!isFinite(num)) return '—';
-  if (roundingEnabled && round) return fmt(roundSmart(num));
-  return num.toFixed(2);
+
+  if (roundingEnabled && useRounding) {
+    // по умолчанию: ближайший 5 + щелчок 5 вниз к 0
+    let r = roundNearest5(num);
+    r = snapFiveDown(r, num);
+    return Number.isInteger(r) ? r.toLocaleString('ru-RU') : r.toFixed(2);
+
+    // если нужно "всегда вверх", замени блок выше на:
+    // const r = roundUp5(num);
+    // return Number.isInteger(r) ? r.toLocaleString('ru-RU') : r.toFixed(2);
+  }
+
+  const v = Number(num.toFixed(2));
+  return Number.isInteger(v) ? v.toLocaleString('ru-RU') : v.toFixed(2);
 }
 
 // ---------- CALC CORE ----------
@@ -163,7 +171,6 @@ function calcPercentOfNumber(x, Y) {
   return `${x}% от ${fmt(Y)} = ${formatOut(result)}`;
 }
 function calcNumberIsPercent(x, Y) {
-  // процент выводим классикой (не крутим к 50/55/60)
   const pct = (x / Y) * 100;
   return `${x} = ${pct.toFixed(2)}% от ${fmt(Y)}`;
 }
@@ -173,7 +180,7 @@ function calcNumberFromPercent(x, Y, s) {
   if (s !== '' && !isNaN(parseFloat(s))) {
     const sum = base + parseFloat(s);
     text += `<div class="sum-result">Сумма с S: ${formatOut(sum)}
-      <button class="copy-btn" onclick="(${copyToClipboard.toString()})('${formatOut(sum, {round:false})}')"><i class="fas fa-copy"></i></button>
+      <button class="copy-btn" onclick="(${copyToClipboard.toString()})('${Number(sum).toFixed(2)}')"><i class="fas fa-copy"></i></button>
     </div>`;
   }
   return text;
@@ -277,10 +284,10 @@ roundToggle.addEventListener('click', () => {
   roundingEnabled = !roundingEnabled;
   roundToggle.classList.toggle('active', roundingEnabled);
   saveState();
-  calculate('auto'); // переотрисовать с новым режимом
+  calculate('auto'); // перерисовать результат с новым режимом
 });
 
-// История → подстановка значений (без добавления в историю)
+// История → подстановка значений
 hist.addEventListener('click', e => {
   const itemEl = e.target.closest('.history-item');
   if (!itemEl) return;
