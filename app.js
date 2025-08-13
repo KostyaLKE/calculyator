@@ -99,13 +99,11 @@ function restoreState() {
     roundingEnabled = !!state.rounding;
   } catch {}
 
-  // Инициализация тумблера округления из состояния
   roundToggle.classList.toggle('active', roundingEnabled);
   roundToggle.setAttribute('aria-pressed', String(roundingEnabled));
   const span = roundToggle.querySelector('.btn-text');
   if (span) span.textContent = roundingEnabled ? 'Округление' : 'Округлить';
 
-  // Навесим обработчик на тумблер округления
   roundToggle.addEventListener('click', () => {
     roundingEnabled = !roundingEnabled;
     roundToggle.classList.toggle('active', roundingEnabled);
@@ -116,17 +114,6 @@ function restoreState() {
     calculate('auto');
   });
 }
-
-// одноразовая зачистка старых историй (если тянулись onclick)
-;(function migrateHistory() {
-  let changed = false;
-  historyArr = historyArr.map(h => {
-    const cleaned = h.display.replace(/showToast[\s\S]*$/,'').trim();
-    if (cleaned !== h.display) { changed = true; return {...h, display: cleaned}; }
-    return h;
-  });
-  if (changed) localStorage.setItem('calcHistory', JSON.stringify(historyArr));
-})();
 
 // ---------- INPUT LIMITS ----------
 const onlyDigits = s => (s || '').replace(/[^\d]/g, '');
@@ -167,7 +154,7 @@ function updateSumChip() {
   sumChip.textContent = `ΣY: ${fmt(sumY())}`;
 }
 
-// ---------- ROUNDING: всегда вверх к ближайшему 5 ----------
+// ---------- ROUNDING ----------
 function roundUp5(n) {
   return Math.ceil((Number(n) || 0) / 5) * 5;
 }
@@ -207,7 +194,6 @@ function calcIncreaseByPercent(x, Y) {
   return `${fmt(Y)} + ${x}% = ${formatOut(result)}`;
 }
 
-// source: 'auto' | 'manual'
 function calculate(source = 'auto') {
   const Y = sumY();
   const x = parseInt(onlyDigits(xEl.value) || 'NaN', 10);
@@ -273,7 +259,6 @@ clearHistoryBtn.addEventListener('click', () => {
   historyArr = [];
   localStorage.setItem('calcHistory', '[]');
   renderHistory();
-  showToast('История очищена');
 });
 clearInputsBtn.addEventListener('click', () => {
   xEl.value = '';
@@ -286,18 +271,14 @@ clearInputsBtn.addEventListener('click', () => {
 });
 exportHistoryBtn.addEventListener('click', exportHistory);
 toggleHistoryBtn.addEventListener('click', () => hist.classList.toggle('hidden'));
-
-// Тема: единый источник правды — calcState.dark
 toggleThemeBtn.addEventListener('click', () => {
   document.body.classList.toggle('dark');
   saveState();
 });
-
 openTinyBtn.addEventListener('click', () => {
   window.open(window.location.href, 'tinyCalc', 'width=350,height=600');
 });
 
-// делегирование: копирование суммы S
 document.addEventListener('click', e => {
   const btn = e.target.closest('.copy-btn');
   if (btn) {
@@ -306,7 +287,6 @@ document.addEventListener('click', e => {
   }
 });
 
-// История → подстановка Y
 hist.addEventListener('click', e => {
   const itemEl = e.target.closest('.history-item');
   if (!itemEl) return;
