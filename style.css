@@ -210,5 +210,7 @@ button:active { transform: scale(0.97); }
 }
 #toast.show { opacity: 1; }
 
-/* ===== Служебное (для сворачивания истории) ===== */
-.hidden { display: none !important; }
+/* ===== Служебный класс для скрытия ===== */
+.hidden {
+  display: none !important;
+}
