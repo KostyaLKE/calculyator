@@ -49,9 +49,25 @@ button:active { transform: scale(0.97); }
 .history-item { padding: 4px; cursor: pointer; border-radius: 6px; transition: background .2s; }
 .history-item:hover { background: rgba(0,122,255,0.15); }
 
-/* ΣY + ОКРУГЛИТЬ + РАССЧИТАТЬ в одной строке */
-.row.meta { align-items: center; justify-content: space-between; }
-.meta-actions { display: flex; gap: 6px; }
+/* одна строка для ΣY + Округлить + Рассчитать */
+.row.meta { 
+  align-items: center; 
+  justify-content: space-between; 
+  flex-wrap: nowrap;           /* не переносить */
+}
+.meta-actions { 
+  display: flex; 
+  gap: 6px; 
+  flex: 0 0 auto;              /* не растягивать */
+  white-space: nowrap;
+}
+#sumChip { 
+  flex: 1 1 auto; 
+  min-width: 0; 
+  overflow: hidden; 
+  text-overflow: ellipsis;
+}
+
 
 /* ЧИП и КНОПКИ-ЧИПЫ */
 .chip {
