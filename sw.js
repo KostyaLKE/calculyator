@@ -1,4 +1,4 @@
-const CACHE_NAME = 'calculator-v6'; // меняем при каждом обновлении
+const CACHE_NAME = 'calculator-v7'; // меняем при каждом обновлении
 const urlsToCache = [
   '/',
   '/index.html',
