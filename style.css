@@ -1,3 +1,4 @@
+/* БАЗА */
 body {
   display: flex;
   justify-content: center;
@@ -10,19 +11,33 @@ body {
 body.dark {
   background: linear-gradient(135deg, #1C2526, #2a3435);
 }
+
+/* КАРТОЧКА */
 .glass {
   background: rgba(255, 255, 255, 0.15);
   backdrop-filter: blur(15px);
   border-radius: 16px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
   padding: 16px;
-  width: 320px;
+  width: 320px;               /* под iPhone 12 Pro ок */
   color: #000;
 }
 .dark .glass {
   background: rgba(0, 0, 0, 0.25);
   color: #fff;
 }
+
+.mode-group {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  margin-bottom: 6px;
+}
+.mode-group select {
+  flex: 1 1 0;
+}
+
+/* РЯДЫ */
 .row {
   display: flex;
   gap: 6px;
@@ -36,12 +51,14 @@ body.dark {
 .row.center {
   justify-content: center;
 }
+
+/* ЭЛЕМЕНТЫ ФОРМЫ */
 input, select, button {
   padding: 8px;
   border: none;
   border-radius: 10px;
   font-size: 14px;
-  box-sizing: border-box;
+  box-sizing: border-box;     /* важно для iOS, чтобы не разъезжалось */
 }
 input, select {
   background: rgba(255, 255, 255, 0.8);
@@ -56,12 +73,22 @@ button {
   cursor: pointer;
   transition: transform 0.1s ease, background 0.3s ease;
 }
-button:hover {
-  background: #005BB5;
+button:hover { background: #005BB5; }
+button:active { transform: scale(0.97); }
+
+/* ИКОН-КНОПКА */
+.icon-btn {
+  padding: 8px 12px;
+  border-radius: 50%;
+  background: #007AFF;
+  color: white;
+  font-size: 18px;
+  cursor: pointer;
+  transition: background 0.2s ease;
 }
-button:active {
-  transform: scale(0.97);
-}
+.icon-btn:hover { background: #005BB5; }
+
+/* РЕЗУЛЬТАТ */
 .result {
   margin-top: 10px;
   padding: 10px;
@@ -70,14 +97,16 @@ button:active {
   opacity: 0;
   transform: translateY(10px);
   transition: opacity 0.25s ease, transform 0.25s ease;
-  text-align: center;
-  font-size: 1.1rem;
+  text-align: center;         /* по центру */
+  font-size: 1.12rem;
   font-weight: 500;
 }
 .result.show {
   opacity: 1;
   transform: translateY(0);
 }
+
+/* ИСТОРИЯ */
 .history {
   font-size: 12px;
   margin-top: 10px;
@@ -96,18 +125,57 @@ button:active {
 .history-item:hover {
   background: rgba(0, 122, 255, 0.15);
 }
-.icon-btn {
-  padding: 8px 12px;
-  border-radius: 50%;
+
+/* ЧИП ΣY и ТУМБЛЕР ОКРУГЛЕНИЯ */
+.row.meta {
+  align-items: center;
+  justify-content: space-between;
+}
+.chip {
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(0,0,0,0.06);
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.dark .chip { background: rgba(255,255,255,0.15); }
+
+.chip-btn {
+  padding: 6px 10px;
+  border-radius: 999px;
   background: #007AFF;
-  color: white;
-  font-size: 18px;
+  color: #fff;
+  font-size: 13px;
+  border: none;
   cursor: pointer;
-  transition: background 0.2s ease;
+  transition: background .2s ease, transform .1s ease, opacity .2s ease;
 }
-.icon-btn:hover {
-  background: #005BB5;
+.chip-btn:hover { background: #005BB5; }
+.chip-btn:active { transform: scale(0.97); }
+.chip-btn.active { background: #34C759; } /* зелёный, когда включено */
+
+/* СУММА С S (во всплывающем блоке результата) */
+.sum-result {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: rgba(0, 122, 255, 0.2);
 }
+.copy-btn {
+  border: none;
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 12px;
+  background: #007AFF;
+  color: #fff;
+  cursor: pointer;
+}
+
+/* ТОСТЫ */
 #toast {
   position: fixed;
   top: 20px;
@@ -120,7 +188,6 @@ button:active {
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.3s ease;
+  z-index: 999;
 }
-#toast.show {
-  opacity: 1;
-}
+#toast.show { opacity: 1; }
