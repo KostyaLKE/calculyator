@@ -184,7 +184,7 @@ function calcNumberFromPercent(x, Y, s) {
   if (s !== '' && !isNaN(parseFloat(s))) {
     const sum = base + parseFloat(s);
     text += `<div class="sum-result">Сумма с S: ${formatOut(sum)}
-      <button class="copy-btn" data-copy="${Number(sum).toFixed(2)}"><i class="fas fa-copy"></i></button>
+     <button class="copy-btn" data-copy="${formatOut(sum)}"><i class="fas fa-copy"></i></button>
     </div>`;
   }
   return text;
