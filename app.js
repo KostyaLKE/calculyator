@@ -18,11 +18,16 @@ const clearInputsBtn = document.getElementById('clearInputs');
 const exportHistoryBtn = document.getElementById('exportHistory');
 const openTinyBtn = document.getElementById('openTiny');
 const toast = document.getElementById('toast');
+const sumChip = document.getElementById('sumChip');
+const roundToggle = document.getElementById('roundToggle');
 
 // ---------- STATE ----------
 let historyArr = JSON.parse(localStorage.getItem('calcHistory') || '[]');
+let roundingEnabled = JSON.parse(localStorage.getItem('roundingEnabled') || 'false');
 
 // ---------- UTILS ----------
+const fmt = n => Number(n).toLocaleString('ru-RU');
+
 function showToast(msg) {
   toast.textContent = msg;
   toast.classList.add('show');
@@ -60,16 +65,18 @@ function addHistory(item, yValues) {
 
 function saveState() {
   const state = {
-    mode: modeEl.value,
-    x: xEl.value,
-    y1: yInputs[0].value,
-    y2: yInputs[1].value,
-    y3: yInputs[2].value,
-    y4: yInputs[3].value,
-    s: addSInput.value,
+    mode: modeEl?.value,
+    x: xEl?.value,
+    y1: yInputs[0]?.value,
+    y2: yInputs[1]?.value,
+    y3: yInputs[2]?.value,
+    y4: yInputs[3]?.value,
+    s: addSInput?.value,
     dark: document.body.classList.contains('dark'),
+    rounding: roundingEnabled
   };
   localStorage.setItem('calcState', JSON.stringify(state));
+  localStorage.setItem('roundingEnabled', JSON.stringify(roundingEnabled));
 }
 
 function restoreState() {
@@ -82,15 +89,14 @@ function restoreState() {
     });
     if (state.s != null) addSInput.value = state.s;
     if (state.dark) document.body.classList.add('dark');
+    roundingEnabled = !!state.rounding;
   } catch {}
+  roundToggle.classList.toggle('active', roundingEnabled);
 }
 
-// ---------- INPUT SANITIZATION & LIMITS ----------
-function onlyDigits(str) {
-  return (str || '').replace(/[^\d]/g, '');
-}
+// ---------- INPUT LIMITS ----------
+const onlyDigits = s => (s || '').replace(/[^\d]/g, '');
 
-// X: проценты 0..100, не более 3 знаков
 function sanitizeX() {
   let v = onlyDigits(xEl.value);
   if (v.length > 3) v = v.slice(0, 3);
@@ -98,15 +104,11 @@ function sanitizeX() {
   if (num > 100) num = 100;
   xEl.value = v ? String(num) : '';
 }
-
-// Y1: до 4 знаков
 function sanitizeY1() {
   let v = onlyDigits(yInputs[0].value);
   if (v.length > 4) v = v.slice(0, 4);
   yInputs[0].value = v;
 }
-
-// Y2..Y4: до 5 знаков
 function sanitizeYRest() {
   for (let i = 1; i < 4; i++) {
     let v = onlyDigits(yInputs[i].value);
@@ -114,55 +116,80 @@ function sanitizeYRest() {
     yInputs[i].value = v;
   }
 }
-
-// S: допустим до 6 знаков (можно менять при желании)
 function sanitizeS() {
   let v = onlyDigits(addSInput.value);
   if (v.length > 6) v = v.slice(0, 6);
   addSInput.value = v;
 }
 
-// ---------- PARSE ----------
+// ---------- ΣY CHIP ----------
 function sumY() {
   return yInputs
     .map(inp => parseInt(onlyDigits(inp.value) || '0', 10))
     .filter(n => !isNaN(n))
     .reduce((a, b) => a + b, 0);
 }
+function updateSumChip() {
+  sumChip.textContent = `ΣY: ${fmt(sumY())}`;
+}
+
+// ---------- SMART ROUNDING (к 50, 55 или 60) ----------
+function roundSmart(n) {
+  const v = Math.round(Number(n) || 0);     // убираем копейки
+  const base = Math.floor(v / 100) * 100;   // базовые сотни
+  const candidates = [base + 50, base + 55, base + 60];
+  // выбираем ближайший; при равенстве — больший
+  let best = candidates[0];
+  let bestDiff = Math.abs(v - best);
+  for (let i = 1; i < candidates.length; i++) {
+    const d = Math.abs(v - candidates[i]);
+    if (d < bestDiff || (d === bestDiff && candidates[i] > best)) {
+      best = candidates[i];
+      bestDiff = d;
+    }
+  }
+  return best;
+}
+function formatOut(n, {round=true}={}) {
+  const num = Number(n);
+  if (!isFinite(num)) return '—';
+  if (roundingEnabled && round) return fmt(roundSmart(num));
+  return num.toFixed(2);
+}
 
 // ---------- CALC CORE ----------
-function calcPercentOfNumber(x, y) {
-  return `${x}% от ${y} = ${(x / 100 * y).toFixed(2)}`;
+function calcPercentOfNumber(x, Y) {
+  const result = (x / 100) * Y;
+  return `${x}% от ${fmt(Y)} = ${formatOut(result)}`;
 }
-function calcNumberIsPercent(x, y) {
-  return `${x} = ${(x / y * 100).toFixed(2)}% от ${y}`;
+function calcNumberIsPercent(x, Y) {
+  // процент выводим классикой (не крутим к 50/55/60)
+  const pct = (x / Y) * 100;
+  return `${x} = ${pct.toFixed(2)}% от ${fmt(Y)}`;
 }
-function calcNumberFromPercent(x, y, addS) {
-  const base = y / (x / 100);
-  let result = `${x}% от ${base.toFixed(2)} = ${y}`;
-  if (addS !== '' && !isNaN(parseFloat(addS))) {
-    const sum = base + parseFloat(addS);
-    result += `<div class="sum-result">Сумма с S: ${sum.toFixed(2)}
-      <button class="copy-btn" onclick="(${copyToClipboard.toString()})('${sum.toFixed(2)}')"><i class="fas fa-copy"></i></button>
+function calcNumberFromPercent(x, Y, s) {
+  const base = Y / (x / 100);
+  let text = `${x}% от ${base.toFixed(2)} = ${fmt(Y)}`;
+  if (s !== '' && !isNaN(parseFloat(s))) {
+    const sum = base + parseFloat(s);
+    text += `<div class="sum-result">Сумма с S: ${formatOut(sum)}
+      <button class="copy-btn" onclick="(${copyToClipboard.toString()})('${formatOut(sum, {round:false})}')"><i class="fas fa-copy"></i></button>
     </div>`;
   }
-  return result;
+  return text;
 }
-function calcIncreaseByPercent(x, y) {
-  return `${y} + ${x}% = ${((y * (100 + x)) / 100).toFixed(2)}`;
+function calcIncreaseByPercent(x, Y) {
+  const result = (Y * (100 + x)) / 100;
+  return `${fmt(Y)} + ${x}% = ${formatOut(result)}`;
 }
 
 // source: 'auto' | 'manual'
 function calculate(source = 'auto') {
-  // авто‑сумма Y
   const Y = sumY();
-
   const x = parseInt(onlyDigits(xEl.value) || 'NaN', 10);
   const s = addSInput.value.trim();
 
-  // Валидации
   if (isNaN(x) || isNaN(Y) || (!Y && modeEl.value !== 'percentOfNumber' && modeEl.value !== 'increaseByPercent')) {
-    // если авто‑режим — просто гасим результат, без тостов
     if (source === 'auto') {
       res.textContent = '';
       res.classList.remove('show');
@@ -192,11 +219,7 @@ function calculate(source = 'auto') {
   res.innerHTML = text;
   res.classList.add('show');
 
-  // историю пишем только при ручном действии
-  if (source === 'manual') {
-    addHistory(text, yInputs.map(inp => inp.value));
-  }
-
+  if (source === 'manual') addHistory(text, yInputs.map(inp => inp.value));
   saveState();
 }
 
@@ -208,10 +231,9 @@ function debounce(fn, ms) {
     t = setTimeout(() => fn(...args), ms);
   };
 }
-const autoCalc = debounce(() => calculate('auto'), 150);
+const autoCalc = debounce(() => { updateSumChip(); calculate('auto'); }, 150);
 
 // ---------- EVENTS ----------
-// Санитизация + авто‑расчёт
 xEl.addEventListener('input', () => { sanitizeX(); autoCalc(); });
 yInputs[0].addEventListener('input', () => { sanitizeY1(); autoCalc(); });
 [yInputs[1], yInputs[2], yInputs[3]].forEach(inp =>
@@ -219,21 +241,13 @@ yInputs[0].addEventListener('input', () => { sanitizeY1(); autoCalc(); });
 );
 addSInput.addEventListener('input', () => { sanitizeS(); autoCalc(); });
 
-// Режим
-modeEl.addEventListener('change', () => {
-  saveState();
-  autoCalc();
-});
+modeEl.addEventListener('change', () => { saveState(); autoCalc(); });
 
-// Кнопка/Enter = ручной расчёт + история
 calcBtn.addEventListener('click', () => calculate('manual'));
 [xEl, ...yInputs, addSInput].forEach(el =>
-  el.addEventListener('keypress', e => {
-    if (e.key === 'Enter') calculate('manual');
-  })
+  el.addEventListener('keypress', e => { if (e.key === 'Enter') calculate('manual'); })
 );
 
-// Хистори/тема/прочее
 clearHistoryBtn.addEventListener('click', () => {
   historyArr = [];
   localStorage.setItem('calcHistory', '[]');
@@ -245,6 +259,7 @@ clearInputsBtn.addEventListener('click', () => {
   addSInput.value = '';
   res.textContent = '';
   res.classList.remove('show');
+  updateSumChip();
   saveState();
 });
 exportHistoryBtn.addEventListener('click', exportHistory);
@@ -257,14 +272,20 @@ openTinyBtn.addEventListener('click', () => {
   window.open(window.location.href, 'tinyCalc', 'width=350,height=600');
 });
 
-// Клик по истории: подставляем прежние Y (и это не добавляет историю)
+// Тумблер округления
+roundToggle.addEventListener('click', () => {
+  roundingEnabled = !roundingEnabled;
+  roundToggle.classList.toggle('active', roundingEnabled);
+  saveState();
+  calculate('auto'); // переотрисовать с новым режимом
+});
+
+// История → подстановка значений (без добавления в историю)
 hist.addEventListener('click', e => {
   const itemEl = e.target.closest('.history-item');
   if (!itemEl) return;
   const item = historyArr[itemEl.dataset.index];
-  if (item?.yValues) {
-    yInputs.forEach((inp, idx) => inp.value = item.yValues[idx] || '');
-  }
+  if (item?.yValues) yInputs.forEach((inp, idx) => inp.value = item.yValues[idx] || '');
   showToast('Загружено из истории');
   autoCalc();
 });
@@ -272,4 +293,5 @@ hist.addEventListener('click', e => {
 // ---------- INIT ----------
 renderHistory();
 restoreState();
+updateSumChip();
 calculate('auto'); // показать сохранённый результат (если был)
