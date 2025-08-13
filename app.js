@@ -98,16 +98,23 @@ function restoreState() {
     if (state.dark) document.body.classList.add('dark');
     roundingEnabled = !!state.rounding;
   } catch {}
-  roundToggle.addEventListener('click', () => {
-  roundingEnabled = !roundingEnabled;
+
+  // Инициализация тумблера округления из состояния
   roundToggle.classList.toggle('active', roundingEnabled);
+  roundToggle.setAttribute('aria-pressed', String(roundingEnabled));
   const span = roundToggle.querySelector('.btn-text');
   if (span) span.textContent = roundingEnabled ? 'Округление' : 'Округлить';
-  saveState();
-  calculate('auto');
-});
 
-
+  // Навесим обработчик на тумблер округления
+  roundToggle.addEventListener('click', () => {
+    roundingEnabled = !roundingEnabled;
+    roundToggle.classList.toggle('active', roundingEnabled);
+    roundToggle.setAttribute('aria-pressed', String(roundingEnabled));
+    const span = roundToggle.querySelector('.btn-text');
+    if (span) span.textContent = roundingEnabled ? 'Округление' : 'Округлить';
+    saveState();
+    calculate('auto');
+  });
 }
 
 // одноразовая зачистка старых историй (если тянулись onclick)
@@ -266,6 +273,7 @@ clearHistoryBtn.addEventListener('click', () => {
   historyArr = [];
   localStorage.setItem('calcHistory', '[]');
   renderHistory();
+  showToast('История очищена');
 });
 clearInputsBtn.addEventListener('click', () => {
   xEl.value = '';
@@ -278,10 +286,13 @@ clearInputsBtn.addEventListener('click', () => {
 });
 exportHistoryBtn.addEventListener('click', exportHistory);
 toggleHistoryBtn.addEventListener('click', () => hist.classList.toggle('hidden'));
+
+// Тема: единый источник правды — calcState.dark
 toggleThemeBtn.addEventListener('click', () => {
   document.body.classList.toggle('dark');
-  localStorage.setItem('darkMode', document.body.classList.contains('dark'));
+  saveState();
 });
+
 openTinyBtn.addEventListener('click', () => {
   window.open(window.location.href, 'tinyCalc', 'width=350,height=600');
 });
